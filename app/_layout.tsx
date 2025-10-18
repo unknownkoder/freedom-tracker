@@ -1,24 +1,24 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Stack } from "expo-router";
+import { SQLiteProvider, openDatabaseSync } from 'expo-sqlite';
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import migrations from '@/drizzle/migrations';
+import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+const DATABASE_NAME = 'freedom_db';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    const expoDB = openDatabaseSync(DATABASE_NAME);
+    const db = drizzle(expoDB);
+    useMigrations(db, migrations);
+
+    return (
+        <SQLiteProvider
+            databaseName={DATABASE_NAME}
+            options={{ useNewConnection: false }}
+        >
+
+            <Stack screenOptions={{ headerShown: false }} />
+        </SQLiteProvider>
+    );
 }
