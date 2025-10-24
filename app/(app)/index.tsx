@@ -13,8 +13,9 @@ export default function Index() {
 
     const clearApp = async () => {
         await dataStore.delete(schema.user);
+        await dataStore.delete(schema.goals);
         setUserAfterSetup(undefined);
-        router.replace('/');
+        router.replace('/setup');
     }
     
     return (

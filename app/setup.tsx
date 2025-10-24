@@ -32,6 +32,36 @@ const SetupSplash = () => {
         setDebtChecked((debt) => !debt);
     }
 
+    const generateGoals = async (user:schema.User) => {
+        const goals = [];
+        if(isSavingChecked){
+            goals.push({
+                name: 'Savings Goal',
+                type: 'SAVING',
+                userId: user.id
+            });
+        }
+
+        if(isTrackingChecked){
+            goals.push({
+                name: 'Spending Goal',
+                type: 'BUDGET',
+                userId: user.id
+            })
+        }
+
+        if(isDebtChecked){
+            goals.push({
+                name: 'Debt Reduction Goal',
+                type: 'DEBT',
+                userId: user.id
+            })
+        }
+
+        const persistedGoals = await dataStore.insert(schema.goals).values([...goals]).returning();
+        console.log(persistedGoals);
+    }
+
     const handleSubmitUserInformation = async () => {
         try {
             //Validate the user has filled out their name
@@ -44,6 +74,9 @@ const SetupSplash = () => {
             }
             const newUser = await dataStore.insert(schema.user).values({ nickname: usersName }).returning();
             console.log(newUser[0]);
+
+            await generateGoals(newUser[0]);
+            
             
             if (newUser) {
                 setUserAfterSetup(newUser[0]);
