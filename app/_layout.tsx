@@ -3,6 +3,9 @@ import { SQLiteProvider, openDatabaseSync } from 'expo-sqlite';
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import migrations from '@/drizzle/migrations';
 import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator';
+import { GlobalContextProvider, useGlobalContext } from "@/services/GlobalContext";
+import { SplashScreenController } from "@/components/SplashScreenController";
+import { useEffect } from "react";
 
 const DATABASE_NAME = 'freedom_db';
 
@@ -17,8 +20,25 @@ export default function RootLayout() {
             databaseName={DATABASE_NAME}
             options={{ useNewConnection: false }}
         >
-
-            <Stack screenOptions={{ headerShown: false }} />
+            <GlobalContextProvider>
+                <SplashScreenController />
+                <RootNavigator />
+            </GlobalContextProvider>
         </SQLiteProvider>
     );
+}
+
+function RootNavigator(){
+    const {user} = useGlobalContext();
+
+    return (
+        <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Protected guard={!!user}>
+                <Stack.Screen name="(app)" />
+            </Stack.Protected>
+            <Stack.Protected guard={!user}>
+                <Stack.Screen name="setup" />
+            </Stack.Protected>
+        </Stack>
+    )
 }

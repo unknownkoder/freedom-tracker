@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
@@ -6,17 +6,17 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as schema from '@/db/schema';
 import { useRouter } from 'expo-router';
+import { useGlobalContext } from '@/services/GlobalContext';
 
 const SetupSplash = () => {
+
+    const {user, dataStore, setUserAfterSetup} = useGlobalContext();
 
     const [usersName, setUsersName] = useState<string>("");
     const [userNameInputFocused, setUserNameInputFocused] = useState<boolean>(false);
     const [isSavingChecked, setSavingChecked] = useState<boolean>(false);
     const [isTrackingChecked, setTrackingChecked] = useState<boolean>(false);
     const [isDebtChecked, setDebtChecked] = useState<boolean>(false);
-
-    const db = useSQLiteContext();
-    const drizzleDB = drizzle(db, { schema });
 
     const router = useRouter();
 
@@ -42,15 +42,22 @@ const SetupSplash = () => {
                 ]);
                 return;
             }
-            const newUser = await drizzleDB.insert(schema.user).values({ nickname: usersName }).returning();
-            console.log(newUser);
+            const newUser = await dataStore.insert(schema.user).values({ nickname: usersName }).returning();
+            console.log(newUser[0]);
+            
             if (newUser) {
-                router.replace("/");
+                setUserAfterSetup(newUser[0]);
             }
         } catch (e) {
             console.log(e)
         }
     }
+
+    useEffect(() => {
+        if(user){
+            router.replace('/');
+        }
+    }, [user?.id])
 
     const handleUserNameInput = (name: string) => {
         setUsersName(name);
