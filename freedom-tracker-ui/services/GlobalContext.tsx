@@ -6,12 +6,19 @@ import * as schema from '@/db/schema';
 
 export type GlobalContextType = {
     dataStore: any;
-    user?: schema.User;
+    user?: GlobalUser;
     loading: boolean;
     loadUserError: boolean;
     fetchUserFromDatabase: () => void;
-    setUserAfterSetup: (user:schema.User | undefined) => void;
+    updateUserState: (user: GlobalUser) => void;
 };
+
+export type GlobalUser = {
+    id: number;
+    nickname: string;
+    connections: schema.Connection[];
+    accounts: schema.Account[];
+}
 
 const GlobalContext = createContext<GlobalContextType | null>(null);
 
@@ -28,10 +35,15 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
 
     const [loading, setLoading] = useState<boolean>(true);
     const [loadUserError, setLoadUserError] = useState<boolean>(false);
-    const [user, setUser] = useState<schema.User | undefined>();
+    const [user, setUser] = useState<GlobalUser | undefined>();
 
     const db = useSQLiteContext();
     const dataStore = drizzle(db, { schema });
+
+    const updateUserState = (updatedUser: GlobalUser) => {
+        console.log("updating user state to: ", updatedUser);
+        setUser(updatedUser);
+    }
 
     const fetchUserFromDatabase = async () => {
         try {
@@ -40,22 +52,30 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
 
             const appUser = await dataStore.query.user.findFirst();
             if(appUser){
-                setUser(appUser);
+                setUser({
+                    id: appUser.id,
+                    nickname: appUser.nickname,
+                    connections: [],
+                    accounts: []
+                });
             }
         } catch(e){
             setLoadUserError(true);
         } finally {
             setLoading(false);
         }
-    }
-
-    const setUserAfterSetup = (user:schema.User | undefined) => {
-        setUser(user);
-    }
+    } 
 
     return (
         <GlobalContext.Provider
-            value={{dataStore, user, loading, loadUserError, fetchUserFromDatabase, setUserAfterSetup}}
+            value={{
+                dataStore,
+                user,
+                loading,
+                loadUserError,
+                fetchUserFromDatabase,
+                updateUserState
+            }}
         >
             {children}
         </GlobalContext.Provider>

@@ -12,8 +12,11 @@ const DATABASE_NAME = 'freedom_db';
 export default function RootLayout() {
 
     const expoDB = openDatabaseSync(DATABASE_NAME);
-    const db = drizzle(expoDB);
-    useMigrations(db, migrations);
+    const db = drizzle(expoDB); 
+
+    const {success, error} = useMigrations(db, migrations);
+
+    console.log('success: ', success);
 
     return (
         <SQLiteProvider
@@ -30,13 +33,14 @@ export default function RootLayout() {
 
 function RootNavigator(){
     const {user} = useGlobalContext();
+    const guard = user && user?.id > 0
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={!!user}>
+            <Stack.Protected guard={!!guard}>
                 <Stack.Screen name="(app)" />
             </Stack.Protected>
-            <Stack.Protected guard={!user}>
+            <Stack.Protected guard={!guard}>
                 <Stack.Screen name="setup" />
             </Stack.Protected>
         </Stack>
