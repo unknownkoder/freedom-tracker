@@ -82,6 +82,7 @@ const SetupSplash = () => {
 
         const persistedGoals = await dataStore.insert(schema.goals).values([...goals]).returning();
         console.log(persistedGoals);
+        return goals;
     }
 
     const handleSubmitUserInformation = async () => {
@@ -105,6 +106,7 @@ const SetupSplash = () => {
             let account;
 
             if(newUser[0] && user && user.connections.length === 1){
+                console.log("setting connection");
                 connection = await persistConnection(user?.connections[0], newUser[0].id);
             } else {
                 Alert.alert('Must select your primary account', 'Please link your primary account to continue', [
@@ -118,9 +120,11 @@ const SetupSplash = () => {
                 Alert.alert('Must select your primary account', 'Please link your primary account to continue', [
                     {text: 'OK', onPress: () => {}}
                 ])
-            } 
+            }
+
+            console.log(newUser[0], connection, account, goals);
             
-            if (newUser && connection && account && goals) {
+            if (newUser[0] && connection && account && goals) {
                 updateUserState({
                     ...newUser[0],
                     connections: [connection],

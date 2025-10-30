@@ -7,14 +7,16 @@ import { useRouter } from "expo-router";
 
 export default function Index() {
     
-    const {user, dataStore, setUserAfterSetup} = useGlobalContext();
+    const {user, dataStore, updateUserState } = useGlobalContext();
 
     const router = useRouter();
 
     const clearApp = async () => {
         await dataStore.delete(schema.user);
         await dataStore.delete(schema.goals);
-        setUserAfterSetup(undefined);
+        await dataStore.delete(schema.accounts);
+        await dataStore.delete(schema.connections);
+        updateUserState(undefined);
         router.replace('/setup');
     }
     

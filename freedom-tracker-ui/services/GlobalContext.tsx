@@ -6,11 +6,11 @@ import * as schema from '@/db/schema';
 
 export type GlobalContextType = {
     dataStore: any;
-    user?: GlobalUser;
+    user?: GlobalUser | undefined;
     loading: boolean;
     loadUserError: boolean;
     fetchUserFromDatabase: () => void;
-    updateUserState: (user: GlobalUser) => void;
+    updateUserState: (user: GlobalUser | undefined) => void;
 };
 
 export type GlobalUser = {
@@ -40,7 +40,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
     const db = useSQLiteContext();
     const dataStore = drizzle(db, { schema });
 
-    const updateUserState = (updatedUser: GlobalUser) => {
+    const updateUserState = (updatedUser: GlobalUser | undefined) => {
         console.log("updating user state to: ", updatedUser);
         setUser(updatedUser);
     }
