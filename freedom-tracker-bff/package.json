@@ -26,6 +26,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/serve-static": "^5.0.4",
+    "axios": "^1.13.2",
     "hbs": "^4.2.0",
     "http-proxy-middleware": "^3.0.5",
     "reflect-metadata": "^0.2.2",

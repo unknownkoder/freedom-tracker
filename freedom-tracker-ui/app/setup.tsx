@@ -40,6 +40,7 @@ const SetupSplash = () => {
 
     useEffect(() => {
         restorePage();
+        console.log(user);
     }, [])
 
     const toggleSavings = () => {
@@ -81,8 +82,8 @@ const SetupSplash = () => {
         }
 
         const persistedGoals = await dataStore.insert(schema.goals).values([...goals]).returning();
-        console.log(persistedGoals);
-        return goals;
+        //console.log(persistedGoals);
+        return persistedGoals;
     }
 
     const handleSubmitUserInformation = async () => {
@@ -96,9 +97,9 @@ const SetupSplash = () => {
                 return;
             }
 
-            console.log("~~~ Starting Persistence Process ~~~")
+            //console.log("~~~ Starting Persistence Process ~~~")
             const newUser = await dataStore.insert(schema.user).values({ nickname: usersName }).returning();
-            console.log(newUser[0]);
+            //console.log(newUser[0]);
 
             const goals = await generateGoals(newUser[0]);
 
@@ -122,7 +123,7 @@ const SetupSplash = () => {
                 ])
             }
 
-            console.log(newUser[0], connection, account, goals);
+            //console.log(newUser[0], connection, account, goals);
             
             if (newUser[0] && connection && account && goals) {
                 updateUserState({

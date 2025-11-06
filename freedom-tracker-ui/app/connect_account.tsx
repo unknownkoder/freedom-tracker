@@ -24,7 +24,7 @@ const ConnectAccount = () => {
     const onEnroll = async (event: WebViewMessageEvent) => {
         const userData = JSON.parse(event.nativeEvent.data);
 
-        console.log(userData.data);
+        //console.log(userData.data);
         const information = {
             id: 0,
             accessToken: userData.data.accessToken,
@@ -56,10 +56,10 @@ const ConnectAccount = () => {
     const getAccounts = async () => {
         console.log("in getAccounts");
         if (user && user.connections.length === 1) {
-            console.log("user and connections exists");
-            console.log(user.connections[0].accessToken);
+            //console.log("user and connections exists");
+            //console.log(user.connections[0].accessToken);
             const connectedAccounts = await fetchAccountsByAccessToken(user.connections[0].accessToken ?? '');
-            console.log(connectedAccounts);
+            //console.log(connectedAccounts);
             setAccounts(connectedAccounts);
             setLoadingConnectedAccounts(false);
         }
@@ -103,8 +103,8 @@ const ConnectAccount = () => {
 
     useEffect(() => {
         if(user && user.accounts.length === 1){
-            console.log("Its time to go home");
-            console.log(user);
+            //console.log("Its time to go home");
+            //console.log(user);
             router.replace("/setup");
         }
     }, [user?.accounts.length])
