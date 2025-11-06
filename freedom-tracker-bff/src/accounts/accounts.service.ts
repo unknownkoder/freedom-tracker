@@ -4,6 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
 import * as fs from 'fs';
 import axios, { Axios } from 'axios';
+import AccountDetails from './dto/AccountDetails';
+import TellerBalanceResponse from './dto/TellerBalanceResponse';
+import DefaultErrorDTO from './dto/DefaultErrorDTO';
+import TellerTransactionResponse from './dto/TellerTransactionsResponse';
 
 @Injectable()
 export class AccountsService {
@@ -40,25 +44,64 @@ export class AccountsService {
         return mtlsClient;
     }
 
-    async getAccountBalance(accountId: string, accessToken:string){
+    async getAccountBalance(accountId: string, accessToken:string): Promise<TellerBalanceResponse>{
         const client = this.getMtlsClient(accessToken);
         try{
             const res = await client.get(`/${accountId}/balances`);
             return res.data;
         } catch(e){
             console.log(e);
-            return {message: 'Unable to complete request', error: e}
+            throw new Error(e);
         }
     }
 
-    async getAccountTransactions(accountId: string, accessToken:string){
+    async getAccountTransactions(accountId: string, accessToken:string, transactionId?: string): Promise<TellerTransactionResponse[]>{
         const client = this.getMtlsClient(accessToken);
         try{
-            const res = await client.get(`/${accountId}/transactions`);
+            const res = await client.get(`/${accountId}/transactions${transactionId ? `?from_id=${transactionId}` : ''}`);
             return res.data;
         } catch(e){
             console.log(e);
-            return {message: 'Unable to complete request', error: e}
+            throw new Error(e);
         }
+    }
+
+    async getAccountDetails(accountId: string, accessToken:string, transactionId?: string){
+        try{
+            const [balance, transactions] = await Promise.all([
+                this.getAccountBalance(accountId, accessToken),
+                this.getAccountTransactions(accountId, accessToken, transactionId)
+            ]);
+
+            //Get the available balance if not null, otherwise ledger if not null, otherwise 0.00
+            const balanceString = balance.available ? balance.available :
+                balance.ledger ? balance.ledger : '0.00'; 
+
+            const mappedTransactions = transactions.map((transaction:TellerTransactionResponse) => {
+                const transactionDate = new Date(transaction.date);
+                const transactionAmount = Number(transaction.amount);
+                return {
+                    transactionId: transaction.id,
+                    amount: transactionAmount,
+                    date: transactionDate,
+                    category: transaction.details.category,
+                    counterParty: transaction.details.counterparty,
+                    type: transaction.type
+                }
+            })
+
+            const accountDetails: AccountDetails = {
+                accountId,
+                balance: Number(balanceString),
+                transactions: mappedTransactions
+            }
+
+            return accountDetails;
+
+        } catch(e){
+            console.log(e);
+            throw new Error(e);
+        }
+
     }
 }
