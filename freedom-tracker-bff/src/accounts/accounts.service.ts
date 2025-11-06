@@ -8,6 +8,7 @@ import AccountDetails from './dto/AccountDetails';
 import TellerBalanceResponse from './dto/TellerBalanceResponse';
 import DefaultErrorDTO from './dto/DefaultErrorDTO';
 import TellerTransactionResponse from './dto/TellerTransactionsResponse';
+import AccountDetailsRequest from './dto/AccountDetailsRequest';
 
 @Injectable()
 export class AccountsService {
@@ -66,7 +67,7 @@ export class AccountsService {
         }
     }
 
-    async getAccountDetails(accountId: string, accessToken:string, transactionId?: string){
+    async getAccountDetails(accountId: string, accessToken:string, transactionId?: string): Promise<AccountDetails>{
         try{
             const [balance, transactions] = await Promise.all([
                 this.getAccountBalance(accountId, accessToken),
@@ -104,4 +105,18 @@ export class AccountsService {
         }
 
     }
+
+    async getAllAccountDetails(accounts:AccountDetailsRequest[]):Promise<AccountDetails[]> {
+        const requests =
+            accounts.map((accountInfo) => 
+                         this.getAccountDetails(
+                             accountInfo.accountId,
+                             accountInfo.accessToken,
+                             accountInfo.transactionId
+                         )
+            );
+
+        const accountDetails = await Promise.all(requests);
+        return accountDetails;
+    } 
 }

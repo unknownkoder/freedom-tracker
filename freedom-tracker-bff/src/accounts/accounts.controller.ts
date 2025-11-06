@@ -44,14 +44,13 @@ export class AccountsController {
     }
 
     @Post('/details')
-    async fetchAccountDetails(@Body() accountDetails: AccountDetailsRequest[]){
-        const account = accountDetails[0];
+    async fetchAccountDetails(@Body() accounts: AccountDetailsRequest[]){
+        //const account = accountDetails[0];
         //const accountBalance = await this.accountsService.getAccountBalance(account.accountId, account.accessToken);
         //const accountTransactions = await this.accountsService.getAccountTransactions(account.accountId, account.accessToken);
-        const accountDetailsResponse = await this.accountsService.getAccountDetails(account.accountId, account.accessToken, account.transactionId);
-        return [
-            accountDetailsResponse
-        ]
+        //const accountDetailsResponse = await this.accountsService.getAccountDetails(account.accountId, account.accessToken, account.transactionId);
+        const accountDetails = await this.accountsService.getAllAccountDetails(accounts);
+        return accountDetails;
     }
 
 }
