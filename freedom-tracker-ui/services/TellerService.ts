@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 export default function useTeller() {
     const server = process.env.EXPO_PUBLIC_SERVER_URI;
     const APPEND_TRANSACTIONS = process.env.EXPO_PUBLIC_REFETCH_TRANSACTIONS;
-    const { dataStore, updateUserState, user } = useGlobalContext();
+    const { dataStore, user } = useGlobalContext();
 
     const fetchAccountsByAccessToken = async (accessToken: string) => {
         //console.log(server);

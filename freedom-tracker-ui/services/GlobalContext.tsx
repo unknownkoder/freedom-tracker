@@ -14,7 +14,7 @@ export type GlobalContextType = {
     loadUserError: boolean;
     fetchUserFromDatabase: () => void;
     updateUserState: (user: GlobalUser | undefined) => void;
-    loadUserAccountInfo: () => void;
+    updateLoadingState: (loading: boolean) => void;
 };
 
 export type GlobalUser = {
@@ -39,7 +39,7 @@ export const useGlobalContext = () => {
 
 export function GlobalContextProvider({ children }: PropsWithChildren) {
 
-    const { fetchAndPersistAccountDetails } = useTeller();
+    //const { fetchAndPersistAccountDetails } = useTeller();
 
     const [loading, setLoading] = useState<boolean>(true);
     const [loadUserError, setLoadUserError] = useState<boolean>(false);
@@ -47,6 +47,10 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
 
     const db = useSQLiteContext();
     const dataStore = drizzle(db, { schema });
+
+    const updateLoadingState = (loading:boolean) => {
+        setLoading(loading);
+    }
 
     const updateUserState = (updatedUser: GlobalUser | undefined) => {
         //console.log("updating user state to: ", updatedUser);
@@ -83,50 +87,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
         } finally {
             setLoading(false);
         }
-    }
-
-    const loadUserAccountInfo = async () => {
-        setLoading(true);
-        if (user) {
-            const accounts = user.accounts;
-            const connections = user.connections;
-            const transactions = user.transactions;
-            const accountDetailsRequestBody: AccountDetailsRequest[] = accounts.map((account) => {
-                const accessToken = connections.filter(connection => connection.id === account.connectionId)[0].accessToken;
-                let transactionId = '';
-                if (transactions.length && transactions.some((t => t.accountId === account.id))) {
-                    const lastAccountTransaction = transactions.filter(t => t.accountId === account.id)[0];
-                    transactionId = lastAccountTransaction.id;
-                }
-
-                const body = transactionId !== '' ?
-                    {
-                        accountId: account.id,
-                        accessToken: accessToken ?? '',
-                        transactionId
-                    }
-                    :
-                    {
-                        accountId: account.id,
-                        accessToken: accessToken ?? ''
-                    }
-                return body;
-            })
-
-            try {
-                const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
-                updateUserState({
-                    ...user,
-                    accounts,
-                    transactions
-                })
-                setLoading(false);
-            } catch (e) {
-                console.log(e);
-            }
-
-        }
-    }
+    } 
 
     return (
         <GlobalContext.Provider
@@ -137,7 +98,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                 loadUserError,
                 fetchUserFromDatabase,
                 updateUserState,
-                loadUserAccountInfo
+                updateLoadingState
             }}
         >
             {children}
