@@ -1,3 +1,11 @@
+import * as schema from '@/db/schema';
+
+export type AccountDetailsRequest = {
+    accountId: string;
+    accessToken: string;
+    transactionId?: string;
+}
+
 export type TransactionCounterParty = {
     name: string | null,
     type: 'organization' | 'person' | null
@@ -31,11 +39,10 @@ export type TransactionCategory =
     'tax' |
     'transport' |
     'transportation' |
-    'utilities'
+    'utilities' |
     null;
 
-
-type Transaction = {
+export type TellerTransaction = {
     transactionId: string,
     amount: number,
     date: string,
@@ -44,4 +51,13 @@ type Transaction = {
     type: string
 }
 
-export default Transaction;
+export type AccountDetails = {
+    accountId: string,
+    balance: number,
+    transactions: TellerTransaction[]
+}
+
+export type FetchAndPersistAccountInfoResponse = {
+    accounts: schema.Account[],
+    transactions: schema.Transaction[]
+}

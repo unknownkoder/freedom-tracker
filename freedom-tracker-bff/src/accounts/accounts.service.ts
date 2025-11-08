@@ -79,12 +79,11 @@ export class AccountsService {
                 balance.ledger ? balance.ledger : '0.00'; 
 
             const mappedTransactions = transactions.map((transaction:TellerTransactionResponse) => {
-                const transactionDate = new Date(transaction.date);
                 const transactionAmount = Number(transaction.amount);
                 return {
                     transactionId: transaction.id,
                     amount: transactionAmount,
-                    date: transactionDate,
+                    date: transaction.date,
                     category: transaction.details.category,
                     counterParty: transaction.details.counterparty,
                     type: transaction.type

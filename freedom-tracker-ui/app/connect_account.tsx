@@ -9,7 +9,8 @@ import * as schema from "@/db/schema";
 import { useRouter } from "expo-router";
 
 const ConnectAccount = () => {
-    const server = process.env.EXPO_PUBLIC_SERVER_URI || ''
+    const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
+    console.log(server);
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
@@ -42,8 +43,10 @@ const ConnectAccount = () => {
             updateUserState({
                 id: -1,
                 nickname: '',
+                goals: [],
                 connections: [information],
-                accounts: []
+                accounts: [],
+                transactions: []
             })
         }
     }
@@ -54,7 +57,7 @@ const ConnectAccount = () => {
     }
 
     const getAccounts = async () => {
-        console.log("in getAccounts");
+        //console.log("in getAccounts");
         if (user && user.connections.length === 1) {
             //console.log("user and connections exists");
             //console.log(user.connections[0].accessToken);
@@ -76,7 +79,8 @@ const ConnectAccount = () => {
             subtype: account.subtype,
             type: account.type,
             currency: account.currency,
-            connectionId: 0
+            connectionId: 0,
+            balance: '0.0'
         }
 
         if(user){
@@ -88,8 +92,10 @@ const ConnectAccount = () => {
             updateUserState({
                 id: 0,
                 nickname: '',
+                goals: [],
                 connections: [],
-                accounts: [accountToSave]
+                accounts: [accountToSave],
+                transactions: []
             })
         }
     }

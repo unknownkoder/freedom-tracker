@@ -5,18 +5,25 @@ import migrations from '@/drizzle/migrations';
 import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator';
 import { GlobalContextProvider, useGlobalContext } from "@/services/GlobalContext";
 import { SplashScreenController } from "@/components/SplashScreenController";
-import { useEffect } from "react";
+import { resetDB } from "@/db/resetdb";
+import {useDrizzleStudio} from "expo-drizzle-studio-plugin";
 
 const DATABASE_NAME = 'freedom_db';
 
 export default function RootLayout() {
 
     const expoDB = openDatabaseSync(DATABASE_NAME);
-    const db = drizzle(expoDB); 
+    const db = drizzle(expoDB);  
+
+    const resetDatabase = process.env.EXPO_PUBLIC_RESET_DATABASE || 'false';
+
+    if(resetDatabase === 'true'){
+        resetDB(expoDB);
+    }
 
     const {success, error} = useMigrations(db, migrations);
-
-    console.log('success: ', success);
+    
+    console.log("success: ", success, error);
 
     return (
         <SQLiteProvider

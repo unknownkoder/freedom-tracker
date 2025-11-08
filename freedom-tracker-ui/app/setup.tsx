@@ -123,13 +123,15 @@ const SetupSplash = () => {
                 ])
             }
 
-            //console.log(newUser[0], connection, account, goals);
+            console.log(newUser[0], connection, account, goals);
             
             if (newUser[0] && connection && account && goals) {
                 updateUserState({
                     ...newUser[0],
+                    goals: [goals],
                     connections: [connection],
-                    accounts: [account]
+                    accounts: [account],
+                    transactions: []
                 });
                 await AsyncStorage.multiRemove(['setup-savings', 'setup-debt', 'setup-tracking']);
             } else {
@@ -163,8 +165,10 @@ const SetupSplash = () => {
             updatedUser = {
                 id: -1,
                 nickname: usersName,
+                goals: [],
                 connections: [],
-                accounts: []
+                accounts: [],
+                transactions: []
             }
         }
 
