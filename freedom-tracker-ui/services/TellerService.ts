@@ -9,7 +9,6 @@ export default function useTeller() {
     const { dataStore, user } = useGlobalContext();
 
     const fetchAccountsByAccessToken = async (accessToken: string) => {
-        //console.log(server);
         const res = await fetch(`http://${server}:8000/api/accounts`, {
             method: 'GET',
             headers: {
@@ -26,7 +25,6 @@ export default function useTeller() {
         const persistedConnection = await dataStore.insert(schema.connections)
             .values({ accessToken: connection.accessToken, enrollmentId: connection.enrollmentId, tellerUserId: connection.tellerUserId, userId })
             .returning();
-        //console.log(persistedConnection[0]);
         return persistedConnection[0];
     }
 
@@ -37,7 +35,6 @@ export default function useTeller() {
                 connectionId
             })
             .returning();
-        //console.log(persistedAccount[0]);
         return persistedAccount[0];
     }
 
@@ -52,7 +49,6 @@ export default function useTeller() {
             });
             const accountDetails: AccountDetails[] = await res.json();
             //We need to update the database and set the global context
-            //console.log(accountDetails);
             const updateAccounts =
                 accountDetails.map((accountInfo) =>
                     dataStore.update(schema.accounts)
@@ -61,13 +57,15 @@ export default function useTeller() {
                         .returning()
                 );
 
-            const updatedAccounts = await Promise.all(updateAccounts);
+            const persistedAccountArrays = await Promise.all(updateAccounts);
+            const updatedAccounts: schema.Account[] = [];
+            persistedAccountArrays.forEach((account) => updatedAccounts.push(account[0]));
 
-            let transactionsToPersist: schema.Transaction[] = accountDetails.map((account: AccountDetails) => {
-                const transactions: schema.Transaction[] = account.transactions.map((transaction: TellerTransaction) => {
+            let transactionsToPersist = accountDetails.map((account: AccountDetails) => {
+                const transactions = account.transactions.map((transaction: TellerTransaction) => {
                     return {
                         accountId: account.accountId || '',
-                        id: transaction.transactionId || '',
+                        tellerTransactionId: transaction.transactionId || '',
                         amount: `${transaction.amount}`,
                         date: transaction.date || '',
                         category: transaction.category || null,
@@ -83,26 +81,21 @@ export default function useTeller() {
                 }
             }).flatMap(accountTransactions => accountTransactions.transactions);
 
-            //transactionsToPersist.sort((a, b) => b.date.localeCompare(a.date));
-
-            let allTransactions: schema.Transaction[] = [...transactionsToPersist];
+            let allTransactions: schema.Transaction[] = [];
 
             //If we are in the sandbox environment the pagination by transaction id does not work
             //Only persist new transactions to the database if we are not in sandbox and if we included
             //a transaction id to fetch after
-            if (APPEND_TRANSACTIONS === 'true' && accounts.some((a) => a.transactionId)) {
-                //store any new transactions, and add the users previous transactions behind the new ones
-                await dataStore.insert(schema.transactions).values([...transactionsToPersist]);
+            const persistedTransactions = await dataStore.insert(schema.transactions).values([...transactionsToPersist]).returning();
 
-                if (user) {
-                    const currentTransactions = user.transactions;
-                    allTransactions = [...allTransactions, ...currentTransactions];
-                }
+            if (user) {
+                const currentTransactions = user.transactions;
+                allTransactions = [...persistedTransactions, ...currentTransactions];
             }
 
-            console.log("Ready to update the user object");
+            allTransactions.sort((a, b) => b.date.localeCompare(a.date));
             return {
-                accounts: updatedAccounts[0],
+                accounts: updatedAccounts,
                 transactions: allTransactions
             }
         } catch (e) {

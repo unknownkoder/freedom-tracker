@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b4e3aa66-0657-4855-9ab6-90f2d3aaf83d",
+  "id": "4c88b563-66cc-4bda-a1f4-b6f1524a766f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -140,8 +140,8 @@
           "autoincrement": false,
           "default": "''"
         },
-        "teller_user_if": {
-          "name": "teller_user_if",
+        "teller_user_id": {
+          "name": "teller_user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -257,9 +257,16 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": true
+        },
+        "teller_transactions_id": {
+          "name": "teller_transactions_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "amount": {
@@ -273,7 +280,7 @@
           "name": "date",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "category": {

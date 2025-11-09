@@ -17,12 +17,13 @@ export default function RootLayout() {
             const transactions = user.transactions;
             const accountDetailsRequestBody: AccountDetailsRequest[] = accounts.map((account) => {
                 const accessToken = connections.filter(connection => connection.id === account.connectionId)[0].accessToken;
+                
                 let transactionId = '';
                 if (transactions.length && transactions.some((t => t.accountId === account.id))) {
                     const lastAccountTransaction = transactions.filter(t => t.accountId === account.id)[0];
-                    transactionId = lastAccountTransaction.id;
+                    transactionId = lastAccountTransaction.tellerTransactionId || '';
                 }
-
+                
                 const body = transactionId !== '' ?
                     {
                         accountId: account.id,
@@ -34,10 +35,12 @@ export default function RootLayout() {
                         accountId: account.id,
                         accessToken: accessToken ?? ''
                     }
+                
                 return body;
             })
 
             try {
+                
                 const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
                 updateUserState({
                     ...user,

@@ -17,7 +17,7 @@ CREATE TABLE `connections` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`access_token` text DEFAULT '',
 	`enrollment_id` text DEFAULT '',
-	`teller_user_if` text DEFAULT '',
+	`teller_user_id` text DEFAULT '',
 	`user_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -34,9 +34,10 @@ CREATE TABLE `goals` (
 );
 --> statement-breakpoint
 CREATE TABLE `transactions` (
-	`id` text PRIMARY KEY NOT NULL,
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`teller_transactions_id` text,
 	`amount` numeric,
-	`date` text,
+	`date` text NOT NULL,
 	`category` text,
 	`counterparty_name` text,
 	`counterparty_type` text,

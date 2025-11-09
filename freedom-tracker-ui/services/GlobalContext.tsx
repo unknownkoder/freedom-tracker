@@ -53,7 +53,6 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
     }
 
     const updateUserState = (updatedUser: GlobalUser | undefined) => {
-        //console.log("updating user state to: ", updatedUser);
         setUser(updatedUser);
     }
 
@@ -67,7 +66,6 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
             const accounts = dataStore.query.accounts.findMany();
             const goals = dataStore.query.goals.findMany();
             const transactions = dataStore.select().from(schema.transactions).orderBy(desc(schema.transactions.date));
-            //console.log(transactions);
 
             const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions]
                 = await Promise.all([appUser, connections, accounts, goals, transactions]);

@@ -10,7 +10,7 @@ export const connections = sqliteTable('connections', {
     id: integer('id').primaryKey({ autoIncrement: true }),
     accessToken: text('access_token').default(''),
     enrollmentId: text('enrollment_id').default(''),
-    tellerUserId: text('teller_user_if').default(''),
+    tellerUserId: text('teller_user_id').default(''),
     userId: integer('user_id').references(() => user.id)
 })
 
@@ -43,7 +43,8 @@ export const goals = sqliteTable('goals', {
 type TransactionCounterPartyType = 'organization' | 'person' | null;
 
 export const transactions = sqliteTable('transactions', {
-    id: text('id').primaryKey(),
+    id: integer('id').primaryKey({autoIncrement: true}),
+    tellerTransactionId: text('teller_transactions_id'),
     amount: numeric('amount'),
     date: text('date').notNull(),
     category: text('category').$type<TransactionCategory>(),

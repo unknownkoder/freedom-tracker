@@ -6,132 +6,86 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 
 import * as schema from "@/db/schema";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
-    console.log(server);
+
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
 
-    const { user, updateUserState } = useGlobalContext();
+    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>();
+    const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
+    const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
+
+    const { redirect } = useLocalSearchParams();
     const { fetchAccountsByAccessToken } = useTeller();
 
-    const [connectComplete, setConnectComplete] = useState<boolean>(false);
-    const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
-    const [accounts, setAccounts] = useState([]);
-
-    const onEnroll = async (event: WebViewMessageEvent) => {
-        const userData = JSON.parse(event.nativeEvent.data);
-
-        //console.log(userData.data);
-        const information = {
-            id: 0,
-            accessToken: userData.data.accessToken,
-            enrollmentId: userData.data.enrollment.id,
-            tellerUserId: userData.data.user.id,
-            userId: 0
-        }
-        if (user) {
-            updateUserState({
-                ...user,
-                connections: [information],
-                accounts: []
-            })
-        } else {
-            updateUserState({
-                id: -1,
-                nickname: '',
-                goals: [],
-                connections: [information],
-                accounts: [],
-                transactions: []
-            })
-        }
+    type ConnectWebViewCallback = {
+        data: TellerConnectResponse,
+        status: string
     }
 
     const handleEnroll = (event: WebViewMessageEvent) => {
-        onEnroll(event);
-        setConnectComplete(true);
-    }
-
-    const getAccounts = async () => {
-        //console.log("in getAccounts");
-        if (user && user.connections.length === 1) {
-            //console.log("user and connections exists");
-            //console.log(user.connections[0].accessToken);
-            const connectedAccounts = await fetchAccountsByAccessToken(user.connections[0].accessToken ?? '');
-            //console.log(connectedAccounts);
-            setAccounts(connectedAccounts);
-            setLoadingConnectedAccounts(false);
-        }
-    }
-
-    const setPrimaryAccount = (account) => {
-        const accountToSave:schema.Account = {
-            id: account.id,
-            name: account.name,
-            institution: account.institution.name,
-            lastFour: account.last_four,
-            isPrimary: true,
-            status: account.status,
-            subtype: account.subtype,
-            type: account.type,
-            currency: account.currency,
-            connectionId: 0,
-            balance: '0.0'
-        }
-
-        if(user){
-            updateUserState({
-                ...user,
-                accounts: [accountToSave]
-            })
-        } else {
-            updateUserState({
-                id: 0,
-                nickname: '',
-                goals: [],
-                connections: [],
-                accounts: [accountToSave],
-                transactions: []
-            })
-        }
+        const callbackData: ConnectWebViewCallback = JSON.parse(event.nativeEvent.data);
+        const enrollmentData: TellerConnectResponse = callbackData.data;
+        setEnrollmentData(enrollmentData);
     }
 
     useEffect(() => {
-        if (connectComplete && user && user.connections.length !== 0) {
+        if (enrollmentData) {
             //Fetch all accounts associated with the link
             getAccounts();
         }
-    }, [setConnectComplete, user?.connections.length])
+    }, [enrollmentData])
+ 
+    const getAccounts = async () => {
+        const connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
+        setAccounts(connectedAccounts);
+        setLoadingConnectedAccounts(false);
+    }
 
-    useEffect(() => {
-        if(user && user.accounts.length === 1){
-            //console.log("Its time to go home");
-            //console.log(user);
-            router.replace("/setup");
+    const selectAccount = (account: TellerAccountResponse) => {
+        const callback = JSON.stringify({
+            enrollment: enrollmentData,
+            account
+        });
+        setEnrollmentData(undefined);
+        setAccounts([]);
+        setLoadingConnectedAccounts(true);
+        router.push({
+            pathname: redirect,
+            params: { callback }
+        })
+    } 
+
+    const renderTitle = () => {
+        if (redirect && redirect === "/setup") {
+            return "Choose your Primary Account:"
+        } else {
+            return "Select account to link:"
         }
-    }, [user?.accounts.length])
+    }
 
     return (
         <SafeAreaProvider>
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={{ flex: 1 }}>
-                    {connectComplete ?
+                    {enrollmentData ?
                         <View>
-                            <Text>Choose Your Primary Account:</Text>
+                            <Text>{renderTitle()}</Text>
                             {loadingConnectedAccounts ?
                                 <ActivityIndicator size="large" />
                                 :
                                 <View>
-                                    <FlatList
+                                    <FlatList<TellerAccountResponse>
                                         data={accounts}
-                                        renderItem={({item}) => {
+                                        renderItem={({ item }) => {
                                             return (
                                                 <TouchableOpacity
-                                                    onPress={() => setPrimaryAccount(item)}
+                                                    onPress={() => selectAccount(item)}
                                                     style={{
                                                         flex: 1,
                                                         width: '100%',
