@@ -86,11 +86,17 @@ export default function useTeller() {
             //If we are in the sandbox environment the pagination by transaction id does not work
             //Only persist new transactions to the database if we are not in sandbox and if we included
             //a transaction id to fetch after
-            const persistedTransactions = await dataStore.insert(schema.transactions).values([...transactionsToPersist]).returning();
+            if (APPEND_TRANSACTIONS) {
+                const persistedTransactions = await dataStore.insert(schema.transactions).values([...transactionsToPersist]).returning();
 
-            if (user) {
-                const currentTransactions = user.transactions;
-                allTransactions = [...persistedTransactions, ...currentTransactions];
+                if (user) {
+                    const currentTransactions = user.transactions;
+                    allTransactions = [...persistedTransactions, ...currentTransactions];
+                }
+            } else {
+                if(user){
+                    allTransactions = user.transactions;
+                }
             }
 
             allTransactions.sort((a, b) => b.date.localeCompare(a.date));

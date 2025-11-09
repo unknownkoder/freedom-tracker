@@ -7,6 +7,7 @@ import { LinkAccountButton } from "@/components/LinkAccountButton";
 import { useEffect } from "react";
 import useTeller from "@/services/TellerService";
 import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, TellerConnectEnrollment, TellerConnectResponse } from "@/types/teller";
+import { SpendingOverview } from "@/components/SpendingOverview";
 
 export default function Index() {
 
@@ -72,13 +73,13 @@ export default function Index() {
 
             try {
                 const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
-                 
+
                 updateUserState({
-                        ...user,
-                        accounts: accounts,
-                        connections: [...user.connections, persistedConnection],
-                        transactions: transactions
-                    })
+                    ...user,
+                    accounts: accounts,
+                    connections: [...user.connections, persistedConnection],
+                    transactions: transactions
+                })
                 updateLoadingState(false);
             } catch (e) {
                 console.log(e);
@@ -103,6 +104,11 @@ export default function Index() {
         })
     }
 
+    const isTransactionThisMonth = (transaction: schema.Transaction) => {
+        if (!transaction.date) return false;
+        const today = new Date();
+        return today.getMonth() === +transaction.date.split("-")[1] - 1;
+    }
 
     return (
         <SafeAreaProvider>
@@ -130,26 +136,31 @@ export default function Index() {
                                     <LinkAccountButton onPress={linkNewAccount}>
                                         <Text>Link another account</Text>
                                     </LinkAccountButton>
-                                    <Text>Transactions</Text>
-                                    {user?.transactions?.length > 0 && <FlatList<schema.Transaction>
-                                        data={user.transactions}
-                                        renderItem={({ item }) => {
-                                            const account = user.accounts.filter(account => account.id === item.accountId)[0];
-                                            let date;
-                                            if (item.date) {
-                                                date = new Date(item.date);
-                                            }
-                                            return (
-                                                <View>
-                                                    <Text>Transaction</Text>
-                                                    <Text>Account: {account.name} ... {account.lastFour}</Text>
-                                                    <Text>$ {item.amount}</Text>
-                                                    {date && <Text>On: {date.toDateString()}</Text>}
-                                                </View>
-                                            )
-                                        }}
-                                        keyExtractor={(item) => item.id.toString()}
-                                    />}
+                                    {user?.transactions.length > 0 &&
+                                        <SpendingOverview transactions={user.transactions.filter(transaction => isTransactionThisMonth(transaction))} />
+                                    }
+                                    <View>
+                                        <Text>Transactions</Text>
+                                        {user?.transactions?.length > 0 && <FlatList<schema.Transaction>
+                                            data={user.transactions}
+                                            renderItem={({ item }) => {
+                                                const account = user.accounts.filter(account => account.id === item.accountId)[0];
+                                                let date;
+                                                if (item.date) {
+                                                    date = new Date(item.date);
+                                                }
+                                                return (
+                                                    <View>
+                                                        <Text>Transaction</Text>
+                                                        <Text>Account: {account.name} ... {account.lastFour}</Text>
+                                                        <Text>$ {item.amount}</Text>
+                                                        {date && <Text>On: {date.toDateString()}</Text>}
+                                                    </View>
+                                                )
+                                            }}
+                                            keyExtractor={(item) => item.id.toString()}
+                                        />}
+                                    </View>
                                 </View>
                             }
                         </View>
