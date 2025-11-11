@@ -105,9 +105,9 @@ export default function Index() {
     }
 
     const isTransactionThisMonth = (transaction: schema.Transaction) => {
-        if (!transaction.date) return false;
+        if(!transaction.date) return false;
         const today = new Date();
-        return today.getMonth() === +transaction.date.split("-")[1] - 1;
+        return today.getMonth() === +transaction.date.split('-')[1] - 1;
     }
 
     return (
@@ -137,7 +137,9 @@ export default function Index() {
                                         <Text>Link another account</Text>
                                     </LinkAccountButton>
                                     {user?.transactions.length > 0 &&
-                                        <SpendingOverview transactions={user.transactions.filter(transaction => isTransactionThisMonth(transaction))} />
+                                        <SpendingOverview
+                                            transactions={user.transactions.filter(transaction => isTransactionThisMonth(transaction))}
+                                        />
                                     }
                                     <View>
                                         <Text>Transactions</Text>

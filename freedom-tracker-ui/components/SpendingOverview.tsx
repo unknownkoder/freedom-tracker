@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet } from "react-native"
-import * as schema from "@/db/schema";
-import { useEffect, useState } from "react";
+import {View, Text, StyleSheet} from 'react-native';
+import * as schema from '@/db/schema';
+import {useEffect, useState} from 'react';
 
 interface SpendingOverviewProps {
     transactions: schema.Transaction[]
 }
 
-export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions }) => {
+export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}) => {
 
     const [income, setIncome] = useState<number>(-1);
     const [spending, setSpending] = useState<number>(-1);
@@ -16,19 +16,20 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions
         let runningIncome = 0;
         let runningSpending = 0;
         let percentSpent = 0;
+
         transactions.forEach((transaction) => {
             const amount = transaction.amount ? Number(transaction.amount) : 0;
 
-            if (amount > 0) {
+            if(amount > 0){
                 runningIncome += amount;
             }
 
-            if (amount < 0) {
-                runningSpending += Math.abs(amount);
+            if(amount < 0){
+                runningSpending = Math.abs(amount);
             }
         })
 
-        if (runningIncome > 0 && runningSpending > 0) {
+        if(runningIncome > 0 && runningSpending > 0){
             let percent = runningSpending / runningIncome;
 
             percentSpent = Math.round((percent * 100) * 100) / 100;
@@ -43,29 +44,20 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions
         calculateIncomeAndSpending();
     }, [])
 
-    console.log(`spending: ${spending}, income: ${income}, percentage: ${percentage}`);
-
     return (
-        /* Parent container, shimmer while loading */
         <View style={styles.container}>
             {income > 0 && spending > 0 &&
                 <View style={styles.overview}>
                     <Text style={styles.overviewTitle}>Your month to date spending:</Text>
                     <View style={styles.overviewStats}>
-                        <Text style={[
-                            styles.overviewStatText,
-                            styles.overviewStatIncome
-                        ]}>
+                        <Text style={[styles.overviewStatIncome, styles.overviewStatText]}>
                             ${income.toFixed(2)}
                         </Text>
-                        <Text style={[
-                            styles.overviewStatText,
-                            styles.overviewStatSpending
-                        ]}>
+                        <Text style={[styles.overviewStatText, styles.overviewStatSpending]}>
                             ${spending.toFixed(2)}
                         </Text>
                     </View>
-                    <View style={styles.overviewStatsProgressBar}>
+                    <View style={styles.overviewProgressBar}>
                         <View style={{
                             width: percentage > 100 ? '0%' : `${100 - percentage}%`,
                             backgroundColor: 'green'
@@ -80,6 +72,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions
             }
         </View>
     )
+
 }
 
 const styles = StyleSheet.create({
@@ -108,7 +101,7 @@ const styles = StyleSheet.create({
     },
     overviewStatText: {
         fontSize: 20,
-        fontWeight: 800
+        fontWeight: 800,
     },
     overviewStatIncome: {
         color: 'green'
@@ -116,7 +109,7 @@ const styles = StyleSheet.create({
     overviewStatSpending: {
         color: 'red'
     },
-    overviewStatsProgressBar: {
+    overviewProgressBar: {
         width: '100%',
         height: 32,
         display: 'flex',
