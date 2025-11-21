@@ -1,10 +1,11 @@
-import { Controller, All, Next, Req, Res, Get } from '@nestjs/common';
+import { Controller, All, Next, Req, Res, Get, Post, Body } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import https from 'https';
 import fs from 'fs';
+import AccountDetailsRequest from './dto/AccountDetailsRequest';
 
-@Controller('api')
+@Controller('api/accounts')
 export class AccountsController {
     constructor(private readonly accountsService: AccountsService) { }
 
@@ -36,10 +37,16 @@ export class AccountsController {
         });
     }
 
-    @Get('accounts')
+    @Get('')
     forwardAccountRequests(@Req() req, @Res() res, @Next() next) {
-        console.log('forward request');
         const proxy = this.createProxy();
         proxy(req, res, next);
     }
+
+    @Post('/details')
+    async fetchAccountDetails(@Body() accounts: AccountDetailsRequest[]){
+        const accountDetails = await this.accountsService.getAllAccountDetails(accounts);
+        return accountDetails;
+    }
+
 }

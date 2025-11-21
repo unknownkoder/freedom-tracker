@@ -8,7 +8,6 @@ export class AppController {
   @Get()
   @Render("index")
   getConectPage() {
-    console.log("hitting connect page");
     const connectVariables = this.appService.getConnectVariables();
     return {applicationId: connectVariables.applicationId, environment: connectVariables.environment}
   }

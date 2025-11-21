@@ -8,6 +8,7 @@ CREATE TABLE `accounts` (
 	`subtype` text DEFAULT '',
 	`type` text DEFAULT '',
 	`currency` text DEFAULT 'USD',
+	`balance` numeric DEFAULT '0.0',
 	`connection_id` integer,
 	FOREIGN KEY (`connection_id`) REFERENCES `connections`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -16,7 +17,7 @@ CREATE TABLE `connections` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`access_token` text DEFAULT '',
 	`enrollment_id` text DEFAULT '',
-	`teller_user_if` text DEFAULT '',
+	`teller_user_id` text DEFAULT '',
 	`user_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -30,6 +31,20 @@ CREATE TABLE `goals` (
 	`reset_on_month` integer DEFAULT true,
 	`user_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `transactions` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`teller_transactions_id` text,
+	`amount` numeric,
+	`date` text NOT NULL,
+	`category` text,
+	`counterparty_name` text,
+	`counterparty_type` text,
+	`type` text,
+	`tracked` integer DEFAULT true,
+	`account_id` text,
+	FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `user` (
