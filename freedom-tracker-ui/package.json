@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "start:wsl": "REACT_NATIVE_PACKAGER_HOSTNAME=$(node get_network_local_ip.js) expo start"
+    "start:wsl": "expo start"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
