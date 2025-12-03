@@ -8,9 +8,11 @@ import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as schema from "@/db/schema";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
+import Constants from "expo-constants";
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
     const webViewRef = useRef<WebView>(null);
 
@@ -67,6 +69,10 @@ const ConnectAccount = () => {
         } else {
             return "Select account to link:"
         }
+    }
+
+    if(mocking){
+        
     }
 
     return (

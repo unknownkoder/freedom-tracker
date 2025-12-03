@@ -1,0 +1,11 @@
+{
+    "connections": {
+        "mock_connetion_1": {
+            "id": 1,
+            "accessToken": "mock_acc_1_access",
+            "enrollmentId": "mock_acc_1_enrollment",
+            "tellerUserId": "mock_teller_user",
+            "userId": 1
+        }
+    }
+}

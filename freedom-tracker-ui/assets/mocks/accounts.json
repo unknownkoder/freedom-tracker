@@ -1,0 +1,17 @@
+{
+    "accounts": {
+        "mock_acc_1": {
+            "id": "mock_acc_1",
+            "institution": "Bank of America",
+            "lastFour": "1234",
+            "name": "Primary Checking",
+            "isPrimary": true,
+            "status": "open",
+            "subtype": "checking",
+            "type": "depository",
+            "currency": "USD",
+            "balance": "7000.00",
+            "connectionId": 1
+        }
+    }
+}

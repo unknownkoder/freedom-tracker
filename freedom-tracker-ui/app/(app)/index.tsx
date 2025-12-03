@@ -160,7 +160,7 @@ export default function Index() {
                                                     </View>
                                                 )
                                             }}
-                                            keyExtractor={(item) => item.id.toString()}
+                                            keyExtractor={(item, index) => String(index)}
                                         />}
                                     </View>
                                 </View>

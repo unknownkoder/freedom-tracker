@@ -25,7 +25,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
             }
 
             if(amount < 0){
-                runningSpending = Math.abs(amount);
+                runningSpending += Math.abs(amount);
             }
         })
 

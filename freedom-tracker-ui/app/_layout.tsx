@@ -2,27 +2,27 @@ import { Stack } from "expo-router";
 import { SQLiteProvider, openDatabaseSync } from 'expo-sqlite';
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import migrations from '@/drizzle/migrations';
-import {useMigrations} from 'drizzle-orm/expo-sqlite/migrator';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { GlobalContextProvider, useGlobalContext } from "@/services/GlobalContext";
 import { SplashScreenController } from "@/components/SplashScreenController";
 import { resetDB } from "@/db/resetdb";
-import {useDrizzleStudio} from "expo-drizzle-studio-plugin";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import Constants from "expo-constants";
+import { isFeatureEnabled } from "@/services/utils";
 
 const DATABASE_NAME = 'freedom_db';
 
 export default function RootLayout() {
 
     const expoDB = openDatabaseSync(DATABASE_NAME);
-    const db = drizzle(expoDB);  
+    const db = drizzle(expoDB); 
 
-    const resetDatabase = process.env.EXPO_PUBLIC_RESET_DATABASE || 'false';
-
-    if(resetDatabase === 'true'){
+    if (isFeatureEnabled('EXPO_PUBLIC_RESET_DATABASE')) {
         resetDB(expoDB);
     }
 
-    const {success, error} = useMigrations(db, migrations);
-    
+    const { success, error } = useMigrations(db, migrations);
+
     console.log("success: ", success, error);
 
     return (
@@ -38,8 +38,8 @@ export default function RootLayout() {
     );
 }
 
-function RootNavigator(){
-    const {user} = useGlobalContext();
+function RootNavigator() {
+    const { user } = useGlobalContext();
     const guard = user && user?.id > 0
 
     return (
