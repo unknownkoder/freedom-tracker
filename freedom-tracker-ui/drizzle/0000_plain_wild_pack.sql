@@ -28,7 +28,8 @@ CREATE TABLE `goals` (
 	`amount` numeric DEFAULT '0.0',
 	`duration` integer DEFAULT 30,
 	`type` text NOT NULL,
-	`reset_on_month` integer DEFAULT true,
+	`recurring` integer DEFAULT false,
+	`occurance_type` text DEFAULT 'null',
 	`user_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );

@@ -1,0 +1,16 @@
+{
+    "enrollment_data": {
+        "accessToken": "mock_access_token",
+        "user": {
+            "id": "mock_user_1"
+        },
+        "enrollment": {
+            "id": "mock_enrollment_1",
+            "institution": {
+                "id": "mock_institution_1",
+                "name": "mock_institution_name_1"
+            } 
+        },
+        "signatures": []
+    }
+}

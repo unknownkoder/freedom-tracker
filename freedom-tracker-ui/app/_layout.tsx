@@ -6,9 +6,8 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { GlobalContextProvider, useGlobalContext } from "@/services/GlobalContext";
 import { SplashScreenController } from "@/components/SplashScreenController";
 import { resetDB } from "@/db/resetdb";
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
-import Constants from "expo-constants";
 import { isFeatureEnabled } from "@/services/utils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DATABASE_NAME = 'freedom_db';
 
@@ -17,8 +16,17 @@ export default function RootLayout() {
     const expoDB = openDatabaseSync(DATABASE_NAME);
     const db = drizzle(expoDB); 
 
-    if (isFeatureEnabled('EXPO_PUBLIC_RESET_DATABASE')) {
+    const resetAppForTests = async () => {
         resetDB(expoDB);
+        const savings = AsyncStorage.setItem('setup-savings', 'false');
+        const tracking = AsyncStorage.setItem('setup-tracking', 'false');
+        const debt = AsyncStorage.setItem('setup-debt', 'false');
+        await Promise.all([savings, tracking, debt]);
+    }
+
+    if (isFeatureEnabled('EXPO_PUBLIC_RESET_DATABASE')) {
+        console.log("reset app");
+        resetAppForTests();
     }
 
     const { success, error } = useMigrations(db, migrations);

@@ -8,11 +8,18 @@ import { useEffect } from "react";
 import useTeller from "@/services/TellerService";
 import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, TellerConnectEnrollment, TellerConnectResponse } from "@/types/teller";
 import { SpendingOverview } from "@/components/SpendingOverview";
+import Constants from "expo-constants";
+import useMockService from "@/services/MockService";
 
 export default function Index() {
 
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
+
     const { user, loading, updateUserState, updateLoadingState } = useGlobalContext();
     const { persistConnection, persistAccount, fetchAndPersistAccountDetails } = useTeller();
+    const { fetchAndPersistMockAccountDetails, getMockConnection, getMockAccount } = useMockService();
+
+    console.log("users goals: ", user?.goals);
 
     const router = useRouter();
     const { callback } = useLocalSearchParams();
@@ -20,6 +27,7 @@ export default function Index() {
     const persistNewConnectionAndAccount = async (enrollment: TellerConnectResponse, account: TellerAccountResponse) => {
         updateLoadingState(true);
         if (user) {
+
             const connection: schema.Connection = {
                 id: 0,
                 accessToken: enrollment.accessToken,
@@ -27,7 +35,11 @@ export default function Index() {
                 tellerUserId: enrollment.user.id,
                 userId: user.id
             }
-            const persistedConnection = await persistConnection(connection, user.id);
+            const persistedConnection = mocking ?
+                getMockConnection(account.id)
+                :
+                await persistConnection(connection, user.id);
+
             const accountToPersist: schema.Account = {
                 id: account.id,
                 name: account.name,
@@ -41,7 +53,10 @@ export default function Index() {
                 balance: '0.0',
                 connectionId: persistedConnection.id
             }
-            const persistedAccount = await persistAccount(accountToPersist, persistedConnection.id);
+            const persistedAccount = mocking ?
+                getMockAccount(account.id) 
+                :
+                await persistAccount(accountToPersist, persistedConnection.id);
 
             const accountDetailsRequestBody: AccountDetailsRequest[] = user.accounts.map((account) => {
                 const accessToken = user.connections.filter(connection => connection.id === account.connectionId)[0].accessToken;
@@ -72,7 +87,12 @@ export default function Index() {
             })
 
             try {
-                const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
+                const { accounts, transactions } = mocking ?
+                    fetchAndPersistMockAccountDetails(accountDetailsRequestBody)        
+                    :
+                    await fetchAndPersistAccountDetails(accountDetailsRequestBody);
+
+                console.log(accounts);
 
                 updateUserState({
                     ...user,
@@ -84,8 +104,6 @@ export default function Index() {
             } catch (e) {
                 console.log(e);
             }
-
-
         }
 
     }
@@ -105,7 +123,7 @@ export default function Index() {
     }
 
     const isTransactionThisMonth = (transaction: schema.Transaction) => {
-        if(!transaction.date) return false;
+        if (!transaction.date) return false;
         const today = new Date();
         return today.getMonth() === +transaction.date.split('-')[1] - 1;
     }

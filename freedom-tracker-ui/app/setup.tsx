@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator, GestureResponderEvent } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator, GestureResponderEvent, ScrollView } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from "@expo/vector-icons";
 import * as schema from '@/db/schema';
@@ -9,6 +9,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import useTeller from '@/services/TellerService';
 import { LinkAccountButton } from '@/components/LinkAccountButton';
 import { ConnectAccountCallback, TellerAccountResponse, TellerConnectResponse } from '@/types/teller';
+import { SetupScreenGoalCard } from '@/components/Goals/SetupScreenGoalCard';
+
+export type GoalSetup = {
+    name: string,
+    amount: number,
+    type: schema.GoalType,
+    recurring: boolean,
+    occuranceType: schema.OccuranceType,
+    termedEndDate: Date | null
+}
 
 const SetupSplash = () => {
 
@@ -17,10 +27,34 @@ const SetupSplash = () => {
 
     const [usersName, setUsersName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
-    const [userNameInputFocused, setUserNameInputFocused] = useState<boolean>(false);
     const [isSavingChecked, setSavingChecked] = useState<boolean>(false);
+    const [savingsGoal, setSavingsGoal] = useState<GoalSetup>({
+        name: '',
+        amount: 0.0,
+        type: 'SAVINGS' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null,
+    });
     const [isTrackingChecked, setTrackingChecked] = useState<boolean>(false);
+    const [trackingGoal, setTrackingGoal] = useState<GoalSetup>({
+        name: '',
+        amount: 0.0,
+        type: 'BUDGET' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null
+    })
     const [isDebtChecked, setDebtChecked] = useState<boolean>(false);
+    const [debtGoal, setDebtGoal] = useState<GoalSetup>({
+        name: '',
+        amount: 0.0,
+        type: 'DEBT' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null
+    })
+
     const [enrollment, setEnrollment] = useState<TellerConnectResponse | undefined>();
     const [selectedAccount, setSelectedAccount] = useState<TellerAccountResponse | undefined>();
 
@@ -64,30 +98,41 @@ const SetupSplash = () => {
         setDebtChecked((debt) => !debt);
     }
 
+    type PersistGoalType = {
+        name: string,
+        amount: number,
+        startDate: string,
+        endDate: string | null,
+        type: schema.GoalType,
+        recurring: boolean,
+        occuranceType: schema.OccuranceType,
+        userId: number
+    }
+
     const generateGoals = async (user: schema.User) => {
-        const goals = [];
+        const goals: PersistGoalType[] = [];
+        const mapGoalSetupToPersistGoalType = (goalSetup:GoalSetup, user: schema.User): PersistGoalType => {
+            return {
+                name: goalSetup.name,
+                amount: goalSetup.amount,
+                type: goalSetup.type,
+                startDate: new Date().toISOString().slice(0, 10),
+                endDate: goalSetup.termedEndDate?.toISOString().slice(0, 10) ?? null,
+                recurring: goalSetup.recurring,
+                userId: user.id,
+                occuranceType: goalSetup.occuranceType
+            }
+        }
         if (isSavingChecked) {
-            goals.push({
-                name: 'Savings Goal',
-                type: 'SAVING',
-                userId: user.id
-            });
+            goals.push(mapGoalSetupToPersistGoalType(savingsGoal, user));
         }
 
         if (isTrackingChecked) {
-            goals.push({
-                name: 'Spending Goal',
-                type: 'BUDGET',
-                userId: user.id
-            })
+            goals.push(mapGoalSetupToPersistGoalType(trackingGoal, user));
         }
 
         if (isDebtChecked) {
-            goals.push({
-                name: 'Debt Reduction Goal',
-                type: 'DEBT',
-                userId: user.id
-            })
+            goals.push(mapGoalSetupToPersistGoalType(debtGoal, user));
         }
 
         const persistedGoals = await dataStore.insert(schema.goals).values([...goals]).returning();
@@ -155,7 +200,7 @@ const SetupSplash = () => {
             if (persistedUser && persistedConnection && persistedAccount && persistedGoals) {
                 updateUserState({
                     ...persistedUser,
-                    goals: persistedGoals[0],
+                    goals: persistedGoals,
                     connections: [persistedConnection],
                     accounts: [persistedAccount],
                     transactions: []
@@ -168,7 +213,7 @@ const SetupSplash = () => {
         } catch (e) {
             console.log(e)
         }
-    } 
+    }
 
     const handleUserNameInput = (name: string) => {
         setUsersName(name);
@@ -210,88 +255,75 @@ const SetupSplash = () => {
     return (
         <SafeAreaProvider>
             <SafeAreaView style={styles.container}>
-                {loading ?
-                    <ActivityIndicator size="large" />
-                    :
-                    <View style={styles.container}>
-                        <Text style={styles.title}>Welcome to the Freedom Tracker</Text>
-                        <View style={styles.spacedContent}>
-                            <View style={styles.inputWrapper}>
-                                <Text style={styles.text}>How do you want to be called:</Text>
-                                <TextInput
-                                    style={[styles.textInput, { outlineWidth: 0 }]}
-                                    placeholder="Enter your name"
-                                    value={usersName}
-                                    onChangeText={handleUserNameInput}
-                                    placeholderTextColor="gray"
-                                />
-                            </View>
-                            <View style={{ width: '100%', display: 'flex', gap: 8 }}>
-                                <Text style={styles.text}>Select your Goals:</Text>
-                                <TouchableOpacity style={styles.goalSelector} onPress={toggleSavings}>
-                                    <View style={[styles.goalCheckbox, {
-                                        borderWidth: isSavingChecked ? 0 : 1,
-                                        backgroundColor: isSavingChecked ? 'blue' : 'transparent'
+                <ScrollView>
+                    {loading ?
+                        <ActivityIndicator size="large" />
+                        :
+                        <View style={styles.container}>
+                            <Text style={styles.title}>Welcome to the Freedom Tracker</Text>
+                            <View style={styles.spacedContent}>
+                                <View style={styles.inputWrapper}>
+                                    <Text style={styles.text}>How do you want to be called:</Text>
+                                    <TextInput
+                                        style={[styles.textInput, { outlineWidth: 0 }]}
+                                        placeholder="Enter your name"
+                                        value={usersName}
+                                        onChangeText={handleUserNameInput}
+                                        placeholderTextColor="gray"
+                                    />
+                                </View>
+                                <View style={{ width: '100%', display: 'flex', gap: 8 }}>
+                                    <Text style={styles.text}>Select your Goals:</Text>
+                                    <SetupScreenGoalCard
+                                        goalType='SAVING'
+                                        isChecked={isSavingChecked}
+                                        title={"Saving Money"}
+                                        subtitle={"Set a savings target, and watch your savings account grow."}
+                                        selectGoal={toggleSavings}
+                                        updateGoal={setSavingsGoal}
+                                    />
+                                    <SetupScreenGoalCard
+                                        goalType='BUDGET'
+                                        isChecked={isTrackingChecked}
+                                        title={"Tracking Expenses"}
+                                        subtitle={"Track the money coming in and out of your account on a daily basis."}
+                                        selectGoal={toggleTracking}
+                                        updateGoal={setTrackingGoal}
+                                    />
+                                    <SetupScreenGoalCard
+                                        goalType='DEBT'
+                                        isChecked={isDebtChecked}
+                                        title={"Reduce Debt"}
+                                        subtitle={"Reduce your debt one small chunk at a time until it disapears."}
+                                        selectGoal={toggleDebt}
+                                        updateGoal={setDebtGoal}
+                                    />
+                                </View>
+                                <View style={{ paddingVertical: 16, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    {selectedAccount
+                                        ?
+                                        <View>
+                                            <Text>Primary Account Successfully Connected</Text>
+                                            <Text>{selectedAccount.institution.name} {selectedAccount.name} ending in ...{selectedAccount.last_four}</Text>
+                                        </View>
+                                        :
+                                        <LinkAccountButton onPress={openConnectAccount}>
+                                            <Image
+                                                source={require('../assets/images/Plaid-black.png')}
+                                                style={styles.connectImage}
+                                                resizeMode="contain"
+                                            />
+                                            <Text style={styles.text}>Link your bank account with Plaid</Text>
+                                        </LinkAccountButton>
                                     }
-                                    ]}
-                                    >
-                                        {
-                                            isSavingChecked && <Ionicons name="checkmark" size={16} color="#fff" />
-                                        }
-                                    </View>
-                                    <Text style={styles.goalText}>Saving Money</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.goalSelector} onPress={toggleTracking}>
-                                    <View style={[styles.goalCheckbox, {
-                                        borderWidth: isTrackingChecked ? 0 : 1,
-                                        backgroundColor: isTrackingChecked ? 'blue' : 'transparent'
-                                    }
-                                    ]}
-                                    >
-                                        {
-                                            isTrackingChecked && <Ionicons name="checkmark" size={16} color="#fff" />
-                                        }
-                                    </View>
-                                    <Text style={styles.goalText}>Tracking Expenses</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.goalSelector} onPress={toggleDebt}>
-                                    <View style={[styles.goalCheckbox, {
-                                        borderWidth: isDebtChecked ? 0 : 1,
-                                        backgroundColor: isDebtChecked ? 'blue' : 'transparent'
-                                    }
-                                    ]}
-                                    >
-                                        {
-                                            isDebtChecked && <Ionicons name="checkmark" size={16} color="#fff" />
-                                        }
-                                    </View>
-                                    <Text style={styles.goalText}>Reducing Debt</Text>
+                                </View>
+                                <TouchableOpacity style={styles.submit} onPress={handleSubmitUserInformation}>
+                                    <Text style={styles.text}>Submit and Complete Setup</Text>
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ paddingVertical: 16, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                {selectedAccount
-                                    ?
-                                    <View>
-                                        <Text>Primary Account Successfully Connected</Text>
-                                        <Text>{selectedAccount.institution.name} {selectedAccount.name} ending in ...{selectedAccount.last_four}</Text>
-                                    </View>
-                                    :
-                                    <LinkAccountButton onPress={openConnectAccount}>
-                                        <Image
-                                            source={require('../assets/images/Plaid-black.png')}
-                                            style={styles.connectImage}
-                                            resizeMode="contain"
-                                        />
-                                        <Text style={styles.text}>Link your bank account with Plaid</Text>
-                                    </LinkAccountButton>
-                                }
-                            </View>
-                            <TouchableOpacity style={styles.submit} onPress={handleSubmitUserInformation}>
-                                <Text style={styles.text}>Submit and Complete Setup</Text>
-                            </TouchableOpacity>
                         </View>
-                    </View>
-                }
+                    }
+                </ScrollView>
             </SafeAreaView>
         </SafeAreaProvider>
     )

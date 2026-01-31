@@ -9,6 +9,7 @@ import * as schema from "@/db/schema";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 import Constants from "expo-constants";
+import useMockService from "@/services/MockService";
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
@@ -18,7 +19,11 @@ const ConnectAccount = () => {
 
     const router = useRouter();
 
-    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>();
+    const {getMockTellerConnectResponse, getMockTellerAccounts} = useMockService();
+
+    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => {
+        if(mocking) return getMockTellerConnectResponse();
+    });
     const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
     const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
 
@@ -44,7 +49,12 @@ const ConnectAccount = () => {
     }, [enrollmentData])
  
     const getAccounts = async () => {
-        const connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
+        let connectedAccounts;
+        if(mocking){
+            connectedAccounts = getMockTellerAccounts();
+        } else {
+            connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
+        }
         setAccounts(connectedAccounts);
         setLoadingConnectedAccounts(false);
     }
@@ -69,11 +79,7 @@ const ConnectAccount = () => {
         } else {
             return "Select account to link:"
         }
-    }
-
-    if(mocking){
-        
-    }
+    } 
 
     return (
         <SafeAreaProvider>
