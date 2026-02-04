@@ -6,6 +6,7 @@ import mockEnrollmentData from "../assets/mocks/enrollments.json";
 import mockTellerAccounts from "../assets/mocks/teller_accounts.json";
 import mockAccount2Transactions from "../assets/mocks/transactions_mock_acc_2.json";
 import mockAccount3Transactions from "../assets/mocks/transactions_mock_acc_3.json";
+import mockGoals from "../assets/mocks/goals.json";
 import { GlobalUser } from "./GlobalContext";
 import * as schema from '../db/schema';
 import { AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
@@ -16,7 +17,7 @@ export default function useMockService() {
     const connections = mockConnections.connections;
     const accounts = mockAccounts.accounts;
     const enrollmentData = mockEnrollmentData.enrollment_data;
-    const tellerAccounts = mockTellerAccounts.accounts;
+    const tellerAccounts = mockTellerAccounts.accounts; 
 
     const mock_acc_1_transactions = mockAccount1Transactions.transactions.map((transaction) => {
         const today = new Date();
@@ -50,14 +51,25 @@ export default function useMockService() {
     transactionsMap.set('mock_acc_2', mock_acc_2_transactions);
     transactionsMap.set('mock_acc_3', mock_acc_3_transactions);
 
+    const goals:schema.Goal[] = mockGoals.goals as schema.Goal[];
+
+    const dateMappedGoals = goals.map((goal) => {
+        const today = new Date();
+        return {
+            ...goal,
+            startDate: today.toISOString()
+        }
+    }) as schema.Goal[];
+
     const fetchMockUser = (): GlobalUser => {
+        console.log(goals);
         const transactions = mock_acc_1_transactions;
         transactions.sort((a, b) => b.date.localeCompare(a.date));
-
+        
         return {
             id: user.id,
             nickname: user.nickname,
-            goals: [],
+            goals: [...dateMappedGoals],
             connections: [connections.mock_acc_1],
             accounts: [accounts.mock_acc_1],
             transactions: [...transactions]

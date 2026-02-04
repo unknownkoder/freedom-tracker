@@ -1,11 +1,9 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { asc, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { useSQLiteContext } from 'expo-sqlite';
 import { use, createContext, type PropsWithChildren, useState } from 'react';
 
 import * as schema from '@/db/schema';
-import useTeller from './TellerService';
-import { AccountDetailsRequest } from '@/types/teller';
 import useMockService from './MockService';
 
 export type GlobalContextType = {

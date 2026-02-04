@@ -25,7 +25,6 @@ export default function RootLayout() {
     }
 
     if (isFeatureEnabled('EXPO_PUBLIC_RESET_DATABASE')) {
-        console.log("reset app");
         resetAppForTests();
     }
 

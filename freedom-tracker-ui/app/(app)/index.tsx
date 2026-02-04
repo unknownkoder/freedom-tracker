@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import * as schema from '@/db/schema';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/services/GlobalContext";
@@ -6,10 +6,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinkAccountButton } from "@/components/LinkAccountButton";
 import { useEffect } from "react";
 import useTeller from "@/services/TellerService";
-import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, TellerConnectEnrollment, TellerConnectResponse } from "@/types/teller";
+import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 import { SpendingOverview } from "@/components/SpendingOverview";
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
+import { GoalTrackingCard } from "@/components/Goals/GoalTrackingCard";
 
 export default function Index() {
 
@@ -54,7 +55,7 @@ export default function Index() {
                 connectionId: persistedConnection.id
             }
             const persistedAccount = mocking ?
-                getMockAccount(account.id) 
+                getMockAccount(account.id)
                 :
                 await persistAccount(accountToPersist, persistedConnection.id);
 
@@ -88,7 +89,7 @@ export default function Index() {
 
             try {
                 const { accounts, transactions } = mocking ?
-                    fetchAndPersistMockAccountDetails(accountDetailsRequestBody)        
+                    fetchAndPersistMockAccountDetails(accountDetailsRequestBody)
                     :
                     await fetchAndPersistAccountDetails(accountDetailsRequestBody);
 
@@ -160,6 +161,29 @@ export default function Index() {
                                         />
                                     }
                                     <View>
+                                        <Text>Goals</Text>
+                                        <View>
+                                            {user?.goals?.length > 0 &&
+                                                <FlatList<schema.Goal>
+                                                    data={user.goals}
+                                                    renderItem={(item) => {
+                                                        const today = new Date();
+                                                        const endDate = item.item.endDate ?
+                                                            new Date(item.item.endDate.replaceAll("/", "-")) 
+                                                            : null;
+                                                        
+                                                        if(endDate && today > new Date(endDate)){
+                                                            return null;
+                                                        }
+                                                        
+                                                        return (
+                                                            <GoalTrackingCard goal={item.item} />
+                                                        )
+                                                    }}
+                                                    keyExtractor={(item, index) => String(index)}
+                                                ></FlatList>
+                                            }
+                                        </View>
                                         <Text>Transactions</Text>
                                         {user?.transactions?.length > 0 && <FlatList<schema.Transaction>
                                             data={user.transactions}
