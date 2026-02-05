@@ -5,6 +5,7 @@ import { Stack } from "expo-router"
 import { useEffect } from "react"
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RootLayout() {
 
@@ -14,8 +15,10 @@ export default function RootLayout() {
     const { fetchAndPersistMockAccountDetails } = useMockService();
 
     const loadUserAccountInfo = async () => {
-        updateLoadingState(true);
-        if (user) {
+        const initialBoot = await AsyncStorage.getItem('initial-boot');
+        if (user && initialBoot === 'true') {
+            console.log("~~~ loadUserAccountInfo ~~~")
+            updateLoadingState(true);
             const accounts = user.accounts;
             const connections = user.connections;
             const transactions = user.transactions;
@@ -68,6 +71,7 @@ export default function RootLayout() {
                 updateLoadingState(false);
             }
         }
+        await AsyncStorage.setItem('initial-boot', 'false');
     }
 
     useEffect(() => {

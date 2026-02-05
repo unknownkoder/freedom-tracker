@@ -62,7 +62,6 @@ export default function useMockService() {
     }) as schema.Goal[];
 
     const fetchMockUser = (): GlobalUser => {
-        console.log(goals);
         const transactions = mock_acc_1_transactions;
         transactions.sort((a, b) => b.date.localeCompare(a.date));
         
@@ -77,9 +76,12 @@ export default function useMockService() {
     }
 
     const fetchAndPersistMockAccountDetails = (accountDetailsRequest: AccountDetailsRequest[]): FetchAndPersistAccountInfoResponse => {
+        console.log("~~~ fetchAndPersistMockAccountDetails ~~~")
         const mockedAccounts = accountDetailsRequest.map((account) => {
             return accounts[account.accountId];
         })
+
+        console.log("mockedAccounts: ", mockedAccounts);
 
         const mockedTransactions: schema.Transaction[] = [];
 
@@ -89,6 +91,7 @@ export default function useMockService() {
         })
 
         mockedTransactions.sort((a, b) => b.date.localeCompare(a.date));
+
         return {
             accounts: mockedAccounts,
             transactions: mockedTransactions
@@ -96,15 +99,17 @@ export default function useMockService() {
     }
 
     const getMockTellerConnectResponse = () => {
+        console.log("enrollmentData:", enrollmentData)
         return enrollmentData as TellerConnectResponse;
     }
 
     const getMockTellerAccounts = () => {
+        console.log("tellerAccounts: ", tellerAccounts);
         return tellerAccounts as TellerAccountResponse[];
     }
 
     const getMockConnection = (key:string) => {
-        console.log("connection key", key);
+        console.log("connection: ", connections[key]);
         return connections[key] as schema.Connection;
     }
 

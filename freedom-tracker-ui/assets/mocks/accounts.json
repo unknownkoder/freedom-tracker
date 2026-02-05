@@ -34,7 +34,7 @@
             "isPrimary": false,
             "status": "open",
             "subtype": "credit_card",
-            "type": "cerdit",
+            "type": "credit",
             "currency": "USD",
             "balance": "1300.00",
             "connectionId": 3

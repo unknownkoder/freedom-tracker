@@ -20,8 +20,6 @@ export default function Index() {
     const { persistConnection, persistAccount, fetchAndPersistAccountDetails } = useTeller();
     const { fetchAndPersistMockAccountDetails, getMockConnection, getMockAccount } = useMockService();
 
-    console.log("users goals: ", user?.goals);
-
     const router = useRouter();
     const { callback } = useLocalSearchParams();
 
