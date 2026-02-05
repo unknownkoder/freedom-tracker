@@ -111,7 +111,7 @@ const SetupSplash = () => {
 
     const generateGoals = async (user: schema.User) => {
         const goals: PersistGoalType[] = [];
-        const mapGoalSetupToPersistGoalType = (goalSetup:GoalSetup, user: schema.User): PersistGoalType => {
+        const mapGoalSetupToPersistGoalType = (goalSetup: GoalSetup, user: schema.User): PersistGoalType => {
             return {
                 name: goalSetup.name,
                 amount: goalSetup.amount,
@@ -272,33 +272,6 @@ const SetupSplash = () => {
                                         placeholderTextColor="gray"
                                     />
                                 </View>
-                                <View style={{ width: '100%', display: 'flex', gap: 8 }}>
-                                    <Text style={styles.text}>Select your Goals:</Text>
-                                    <SetupScreenGoalCard
-                                        goalType='SAVING'
-                                        isChecked={isSavingChecked}
-                                        title={"Saving Money"}
-                                        subtitle={"Set a savings target, and watch your savings account grow."}
-                                        selectGoal={toggleSavings}
-                                        updateGoal={setSavingsGoal}
-                                    />
-                                    <SetupScreenGoalCard
-                                        goalType='BUDGET'
-                                        isChecked={isTrackingChecked}
-                                        title={"Tracking Expenses"}
-                                        subtitle={"Track the money coming in and out of your account on a daily basis."}
-                                        selectGoal={toggleTracking}
-                                        updateGoal={setTrackingGoal}
-                                    />
-                                    <SetupScreenGoalCard
-                                        goalType='DEBT'
-                                        isChecked={isDebtChecked}
-                                        title={"Reduce Debt"}
-                                        subtitle={"Reduce your debt one small chunk at a time until it disapears."}
-                                        selectGoal={toggleDebt}
-                                        updateGoal={setDebtGoal}
-                                    />
-                                </View>
                                 <View style={{ paddingVertical: 16, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                     {selectedAccount
                                         ?
@@ -317,7 +290,36 @@ const SetupSplash = () => {
                                         </LinkAccountButton>
                                     }
                                 </View>
-                                <TouchableOpacity style={styles.submit} onPress={handleSubmitUserInformation}>
+                                {selectedAccount &&
+                                    <View style={{ width: '100%', display: 'flex', gap: 8 }}>
+                                        <Text style={styles.text}>Select your Goals:</Text>
+                                        <SetupScreenGoalCard
+                                            goalType='SAVING'
+                                            isChecked={isSavingChecked}
+                                            title={"Saving Money"}
+                                            subtitle={"Set a savings target, and watch your savings account grow."}
+                                            selectGoal={toggleSavings}
+                                            updateGoal={setSavingsGoal}
+                                        />
+                                        <SetupScreenGoalCard
+                                            goalType='BUDGET'
+                                            isChecked={isTrackingChecked}
+                                            title={"Tracking Expenses"}
+                                            subtitle={"Track the money coming in and out of your account on a daily basis."}
+                                            selectGoal={toggleTracking}
+                                            updateGoal={setTrackingGoal}
+                                        />
+                                        <SetupScreenGoalCard
+                                            goalType='DEBT'
+                                            isChecked={isDebtChecked}
+                                            title={"Reduce Debt"}
+                                            subtitle={"Reduce your debt one small chunk at a time until it disapears."}
+                                            selectGoal={toggleDebt}
+                                            updateGoal={setDebtGoal}
+                                        />
+                                    </View>
+                                }
+                                <TouchableOpacity disabled={!selectedAccount} style={[styles.submit, selectedAccount ? styles.submitActive : styles.submitInactive]} onPress={handleSubmitUserInformation}>
                                     <Text style={styles.text}>Submit and Complete Setup</Text>
                                 </TouchableOpacity>
                             </View>
@@ -412,6 +414,12 @@ const styles = StyleSheet.create({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    submitActive: {
+        backgroundColor: 'transparent'
+    },
+    submitInactive: {
+        backgroundColor: 'rgba(0,0,0,0.2)'
     }
 })
 
