@@ -128,6 +128,7 @@ const SetupSplash = () => {
         }
 
         if (isTrackingChecked) {
+            console.log(trackingGoal);
             goals.push(mapGoalSetupToPersistGoalType(trackingGoal, user));
         }
 

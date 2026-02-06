@@ -1,5 +1,5 @@
-import { sqliteTable, text, integer, numeric } from 'drizzle-orm/sqlite-core';
-import { TransactionCategory, TransactionCounterParty } from '@/types/teller';
+import { sqliteTable, text, integer, numeric, primaryKey } from 'drizzle-orm/sqlite-core';
+import { TransactionCategory } from '@/types/teller';
 
 export const user = sqliteTable('user', {
     id: integer('id').primaryKey({ autoIncrement: true }),
@@ -58,8 +58,14 @@ export const transactions = sqliteTable('transactions', {
     accountId: text('account_id').references(() => accounts.id)
 })
 
+export const transactionGoalJunction = sqliteTable('transaction_goal_junction', {
+    transactionId: integer('transaction_id').notNull().references(() => transactions.id),
+    goalId: integer('goal_id').notNull().references(() => goals.id)
+},(t) => [primaryKey({columns: [t.transactionId, t.goalId]})]); 
+
 export type User = typeof user.$inferSelect;
 export type Goal = typeof goals.$inferSelect;
 export type Connection = typeof connections.$inferSelect;
 export type Account = typeof accounts.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type TransactionToGoals = typeof transactionGoalJunction.$inferSelect;

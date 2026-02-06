@@ -1,4 +1,5 @@
 import * as schema from '@/db/schema';
+import { GlobalUserTransaction } from '@/services/GlobalContext';
 
 export type TellerConnectUser = {
     id: string
@@ -116,5 +117,5 @@ export type AccountDetails = {
 
 export type FetchAndPersistAccountInfoResponse = {
     accounts: schema.Account[],
-    transactions: schema.Transaction[]
+    transactions: GlobalUserTransaction[]
 }

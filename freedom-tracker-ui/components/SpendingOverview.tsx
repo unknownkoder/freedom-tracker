@@ -15,9 +15,10 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
     const calculateIncomeAndSpending = () => {
         let runningIncome = 0;
         let runningSpending = 0;
-        let percentSpent = 0;
+        let percentSpent = 0; 
 
         transactions.forEach((transaction) => {
+            console.log(transaction.id, transaction.amount);
             const amount = transaction.amount ? Number(transaction.amount) : 0;
 
             if(amount > 0){
@@ -42,7 +43,9 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
 
     useEffect(() => {
         calculateIncomeAndSpending();
-    }, [])
+    }, [transactions.length])
+
+    console.log(income, spending);
 
     return (
         <View>

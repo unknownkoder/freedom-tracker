@@ -16,13 +16,17 @@ export type GlobalContextType = {
     updateLoadingState: (loading: boolean) => void;
 };
 
+export interface GlobalUserTransaction extends schema.Transaction {
+    trackedGoals: number[];
+}
+
 export type GlobalUser = {
     id: number;
     nickname: string;
     goals: schema.Goal[];
     connections: schema.Connection[];
     accounts: schema.Account[];
-    transactions: schema.Transaction[];
+    transactions: GlobalUserTransaction[];
 }
 
 const GlobalContext = createContext<GlobalContextType | null>(null);
@@ -72,6 +76,13 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                 const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions]
                     = await Promise.all([appUser, connections, accounts, goals, transactions]);
 
+                const globalUserTransactions:GlobalUserTransaction[] = persistedTransactions.map((t) => {
+                    return {
+                        ...t,
+                        trackedGoals: []
+                    }
+                })
+
                 if (persistedUser) {
                     setUser({
                         id: persistedUser.id,
@@ -79,7 +90,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                         goals: persistedGoals ?? [],
                         connections: persistedConnections ?? [],
                         accounts: persistedAccounts ?? [],
-                        transactions: persistedTransactions ?? []
+                        transactions: globalUserTransactions ?? []
                     });
                 }
             }

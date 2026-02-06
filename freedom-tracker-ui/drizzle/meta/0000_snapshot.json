@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bf3be56c-4fc6-43ac-9fd9-1f54a4048143",
+  "id": "f95c0b3e-f94a-4126-8702-dfc20d97e5c1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -201,13 +201,19 @@
           "autoincrement": false,
           "default": "'0.0'"
         },
-        "duration": {
-          "name": "duration",
-          "type": "integer",
+        "startDate": {
+          "name": "startDate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "endDate": {
+          "name": "endDate",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": 30
+          "autoincrement": false
         },
         "type": {
           "name": "type",
@@ -257,6 +263,65 @@
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "transaction_goal_junction": {
+      "name": "transaction_goal_junction",
+      "columns": {
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "goal_id": {
+          "name": "goal_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "transaction_goal_junction_transaction_id_transactions_id_fk": {
+          "name": "transaction_goal_junction_transaction_id_transactions_id_fk",
+          "tableFrom": "transaction_goal_junction",
+          "tableTo": "transactions",
+          "columnsFrom": [
+            "transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transaction_goal_junction_goal_id_goals_id_fk": {
+          "name": "transaction_goal_junction_goal_id_goals_id_fk",
+          "tableFrom": "transaction_goal_junction",
+          "tableTo": "goals",
+          "columnsFrom": [
+            "goal_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "transaction_goal_junction_transaction_id_goal_id_pk": {
+          "columns": [
+            "transaction_id",
+            "goal_id"
+          ],
+          "name": "transaction_goal_junction_transaction_id_goal_id_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
