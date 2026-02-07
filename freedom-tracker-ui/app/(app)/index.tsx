@@ -165,11 +165,14 @@ export default function Index() {
                                                 <FlatList<schema.Goal>
                                                     data={user.goals}
                                                     renderItem={(item) => {
-                                                        const today = new Date();
-                                                        const endDate = item.item.endDate ?
-                                                            new Date(item.item.endDate.replaceAll("/", "-")) 
-                                                            : null;
-                                                        
+                                                        const today = new Date(); 
+                                                         const endDate = item.item.recurring ?
+                                                            null
+                                                            :
+                                                            item.item.endDate ?
+                                                                new Date(item.item.endDate.replaceAll("/", "-"))
+                                                                :
+                                                                null;
                                                         if(endDate && today > new Date(endDate)){
                                                             return null;
                                                         }
