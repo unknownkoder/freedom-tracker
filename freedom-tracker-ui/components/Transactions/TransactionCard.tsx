@@ -1,5 +1,7 @@
-import { GlobalUser, GlobalUserTransaction } from "@/services/GlobalContext"
+import { transactionGoalJunction, transactions } from "@/db/schema";
+import { GlobalUser, GlobalUserTransaction, useGlobalContext } from "@/services/GlobalContext"
 import { Ionicons } from "@expo/vector-icons";
+import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native"
 
@@ -9,6 +11,8 @@ interface TransactionCardProps {
 }
 
 export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, user }) => {
+
+    const { dataStore, updateUserState } = useGlobalContext();
 
     const account = user.accounts.filter(account => account.id === transaction.accountId)[0];
     let date;
@@ -23,14 +27,73 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
         setIsOpen(open => !open);
     }
 
-    const toggleTrackTowardsSpending = () => {
-        /* Other logic to update tracked in db */
+    const toggleTrackTowardsSpending = async () => {
+        /* Flip the UI switch state */
         setTrackTowardsSpending(tracked => !tracked);
+
+        /* Update the record in the database */
+        const persistTransaction = await dataStore.update(transactions)
+            .set({ tracked: !trackTowardsSpending })
+            .where(eq(transactions.id, transaction.id))
+            .returning();
+        if (persistTransaction.length !== 1) {
+            console.log("Something went wrong updating the transaction");
+            throw new Error("Update transaction error");
+        }
+        const updatedTransaction = persistTransaction[0];
+        console.log("Updated transaction: ", updatedTransaction);
+        /* Update the global context record */
+        let updatedUsersTransactions: GlobalUserTransaction[] = user.transactions.map((t) => {
+            if (t.id === updatedTransaction.id) {
+                return {
+                    ...updatedTransaction,
+                    trackedGoals: transaction.trackedGoals
+                }
+            }
+
+            return t;
+        })
+        updateUserState({
+            ...user,
+            transactions: updatedUsersTransactions
+        })
     }
 
-    const trackGoal = (goalId:number) => {
-        /* Persist the goal transaction junction entry */
+    const trackGoal = async (goalId: number) => {
+        let goalList: number[] = JSON.parse(JSON.stringify(transaction.trackedGoals));
+        /* Check if the goal already exists in the tracked goals
+           If it does we remove, otherwise we add it
+        */
+        if (transaction.trackedGoals.some(goal => goal === goalId)) {
+            console.log("remove the goal");
+            await dataStore.delete(transactionGoalJunction)
+                .where(eq(transactionGoalJunction.goalId, goalId));
+            goalList = goalList.filter(g => g !== goalId);
+        } else {
+            /* Persist the goal transaction junction entry */
+            await dataStore.insert(transactionGoalJunction).values({
+                transactionId: transaction.id,
+                goalId: goalId
+            });
+            goalList.push(goalId);
+        }
+
         /* Update the GlobalUserTransaction object in global context */
+        const updatedUserTransactions = user.transactions.map((t) => {
+            if (t.id === transaction.id) {
+                return {
+                    ...t,
+                    trackedGoals: goalList
+                }
+            }
+
+            return t;
+        })
+        console.log(updatedUserTransactions[0]);
+        updateUserState({
+            ...user,
+            transactions: updatedUserTransactions
+        })
     }
 
     return (
@@ -50,14 +113,16 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
             </View>
             {isOpen &&
                 <View style={styles.transactionCardTrackingContentContainer}>
-                    <View>
-                        <Switch
-                            trackColor={{ false: 'gray', true: 'white' }}
-                            thumbColor={'black'}
-                            onValueChange={toggleTrackTowardsSpending}
-                            value={trackTowardsSpending}
-                        />
+                    <View style={styles.transactionCardTrackingContentMonthlyTrackingContainer}>
                         <Text>Track towards monthly expenses.</Text>
+                        <View style={{ width: 50 }}>
+                            <Switch
+                                trackColor={{ false: 'red', true: 'green' }}
+                                thumbColor={'black'}
+                                onValueChange={toggleTrackTowardsSpending}
+                                value={trackTowardsSpending}
+                            />
+                        </View>
                     </View>
                     <View>
                         <Text>Track towards goals:</Text>
@@ -65,13 +130,13 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                             {user.goals.map((goal) => {
                                 return (
                                     <TouchableOpacity key={goal.id} onPress={(e) => {
-                                                e.stopPropagation();
-                                                trackGoal(goal.id)
-                                            }}>
+                                        e.stopPropagation();
+                                        trackGoal(goal.id)
+                                    }}>
                                         <Text>{goal.name}</Text>
                                         <View
-                                            
-                                            
+
+
                                         >
                                             {transaction.trackedGoals.some((goalId) => goalId === goal.id) ?
                                                 <Ionicons name="close" size={16} color="#000" />
@@ -105,5 +170,13 @@ const styles = StyleSheet.create({
     },
     transactionCardTrackingContentContainer: {
 
+    },
+    transactionCardTrackingContentMonthlyTrackingContainer: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: 24
     }
 });

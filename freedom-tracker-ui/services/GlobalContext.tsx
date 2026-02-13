@@ -72,16 +72,26 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                 const accounts = dataStore.query.accounts.findMany();
                 const goals = dataStore.query.goals.findMany();
                 const transactions = dataStore.select().from(schema.transactions).orderBy(desc(schema.transactions.date));
+                const transactionsGoalsJunction = dataStore.query.transactionGoalJunction.findMany();
 
-                const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions]
-                    = await Promise.all([appUser, connections, accounts, goals, transactions]);
+                const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions, persistedTransactionsGoalsJunction]
+                    = await Promise.all([appUser, connections, accounts, goals, transactions, transactionsGoalsJunction]);
 
+                console.log("Transaction Goal Junctions:", persistedTransactionsGoalsJunction);
                 const globalUserTransactions:GlobalUserTransaction[] = persistedTransactions.map((t) => {
+                    
+                    let goals: number[] = [];
+                    persistedTransactionsGoalsJunction.forEach((tg) => {
+                        if(tg.transactionId === t.id) goals.push(tg.goalId);
+                    })
+                    
                     return {
                         ...t,
-                        trackedGoals: []
+                        trackedGoals: goals
                     }
                 })
+                
+                
 
                 if (persistedUser) {
                     setUser({

@@ -1,12 +1,12 @@
-import {View, Text, StyleSheet} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import * as schema from '@/db/schema';
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 
 interface SpendingOverviewProps {
     transactions: schema.Transaction[]
 }
 
-export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}) => {
+export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions }) => {
 
     const [income, setIncome] = useState<number>(-1);
     const [spending, setSpending] = useState<number>(-1);
@@ -15,22 +15,24 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
     const calculateIncomeAndSpending = () => {
         let runningIncome = 0;
         let runningSpending = 0;
-        let percentSpent = 0; 
+        let percentSpent = 0;
 
         transactions.forEach((transaction) => {
-            console.log(transaction.id, transaction.amount);
-            const amount = transaction.amount ? Number(transaction.amount) : 0;
+            if (transaction.tracked) {
+                console.log(transaction.id, transaction.amount);
+                const amount = transaction.amount ? Number(transaction.amount) : 0;
 
-            if(amount > 0){
-                runningIncome += amount;
-            }
+                if (amount > 0) {
+                    runningIncome += amount;
+                }
 
-            if(amount < 0){
-                runningSpending += Math.abs(amount);
+                if (amount < 0) {
+                    runningSpending += Math.abs(amount);
+                }
             }
         })
 
-        if(runningIncome > 0 && runningSpending > 0){
+        if (runningIncome > 0 && runningSpending > 0) {
             let percent = runningSpending / runningIncome;
 
             percentSpent = Math.round((percent * 100) * 100) / 100;
@@ -43,7 +45,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
 
     useEffect(() => {
         calculateIncomeAndSpending();
-    }, [transactions.length])
+    }, [transactions])
 
     console.log(income, spending);
 
