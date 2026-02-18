@@ -19,7 +19,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions
 
         transactions.forEach((transaction) => {
             if (transaction.tracked) {
-                console.log(transaction.id, transaction.amount);
+                /*console.log(transaction.id, transaction.amount);*/
                 const amount = transaction.amount ? Number(transaction.amount) : 0;
 
                 if (amount > 0) {
@@ -47,7 +47,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({ transactions
         calculateIncomeAndSpending();
     }, [transactions])
 
-    console.log(income, spending);
+    /*console.log(income, spending);*/
 
     return (
         <View>

@@ -128,6 +128,12 @@ export default function Index() {
         return today.getMonth() === +transaction.date.split('-')[1] - 1;
     }
 
+    const getTransactionsForGoals = (goalId: number) => {
+        return user?.transactions.filter((t) => {
+            return t.trackedGoals.some((goal) => goal === goalId);
+        }) ?? [];
+    }
+
     return (
         <SafeAreaProvider>
             <SafeAreaView>
@@ -174,9 +180,12 @@ export default function Index() {
                                                         if(endDate && today > new Date(endDate)){
                                                             return null;
                                                         }
-                                                        
+                                                        const goalTransactions = getTransactionsForGoals(item.item.id);
                                                         return (
-                                                            <GoalTrackingCard goal={item.item} />
+                                                            <GoalTrackingCard
+                                                                goal={item.item}
+                                                                transactions={goalTransactions}
+                                                            />
                                                         )
                                                     }}
                                                     keyExtractor={(item, index) => String(index)}

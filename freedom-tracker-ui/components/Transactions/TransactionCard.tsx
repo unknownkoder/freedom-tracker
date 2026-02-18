@@ -1,5 +1,6 @@
 import { transactionGoalJunction, transactions } from "@/db/schema";
 import { GlobalUser, GlobalUserTransaction, useGlobalContext } from "@/services/GlobalContext"
+import { parseDateString } from "@/services/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { eq } from "drizzle-orm";
 import { useState } from "react";
@@ -104,7 +105,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                 <View style={styles.transactionCardContentContainer}>
                     <Text>${transaction.amount}</Text>
                     <Text>{account.name} {account.lastFour}</Text>
-                    <Text>{transaction.counterPartyName} {date ? date.toLocaleDateString() : ''}</Text>
+                    <Text>{transaction.counterPartyName} {date ? parseDateString(date) : ''}</Text>
                 </View>
                 {/* Card Right content */}
                 <View style={styles.transactionCardContentIconContainer}>
@@ -124,15 +125,16 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                             />
                         </View>
                     </View>
-                    <View>
+                    <View style={styles.transactionCardTrackTowardsGoals}>
                         <Text>Track towards goals:</Text>
-                        <View>
                             {user.goals.map((goal) => {
                                 return (
                                     <TouchableOpacity key={goal.id} onPress={(e) => {
                                         e.stopPropagation();
                                         trackGoal(goal.id)
-                                    }}>
+                                    }}
+                                        style={styles.transactionCardTrackTowardsGoalsGoalCard}
+                                    >
                                         <Text>{goal.name}</Text>
                                         <View
 
@@ -147,7 +149,6 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                                     </TouchableOpacity>
                                 )
                             })}
-                        </View>
                     </View>
                 </View>
             }
@@ -157,7 +158,11 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
 
 const styles = StyleSheet.create({
     transactionCard: {
-
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderColor: 'gray',
+        borderWidth: 1,
+        borderRadius: 4
     },
     transactionCardContentFlex: {
 
@@ -178,5 +183,28 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 24
+    },
+    transactionCardTrackTowardsGoals: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        gap: 4
+    },
+    transactionCardTrackTowardsGoalsGoalCard: {
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        borderStyle: 'dashed',
+        display: 'flex',
+        //flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 2
     }
 });
