@@ -3,6 +3,7 @@ import { GlobalUser, GlobalUserTransaction, useGlobalContext } from "@/services/
 import { parseDateString } from "@/services/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { eq } from "drizzle-orm";
+import Constants from "expo-constants";
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native"
 
@@ -11,7 +12,11 @@ interface TransactionCardProps {
     user: GlobalUser;
 }
 
+/* TODO UPDATE THE TRANSACTIONCARD FOR MOCKS */
+
 export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, user }) => {
+
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
     const { dataStore, updateUserState } = useGlobalContext();
 
@@ -31,17 +36,27 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
     const toggleTrackTowardsSpending = async () => {
         /* Flip the UI switch state */
         setTrackTowardsSpending(tracked => !tracked);
+        let updatedTransaction;
 
-        /* Update the record in the database */
-        const persistTransaction = await dataStore.update(transactions)
-            .set({ tracked: !trackTowardsSpending })
-            .where(eq(transactions.id, transaction.id))
-            .returning();
-        if (persistTransaction.length !== 1) {
-            console.log("Something went wrong updating the transaction");
-            throw new Error("Update transaction error");
+        /* If mocking avoid accessing the database */
+        if (mocking) {
+            updatedTransaction = {
+                ...transaction,
+                tracked: !trackTowardsSpending
+            }
+        } else {
+            /* Update the record in the database */
+            const persistTransaction = await dataStore.update(transactions)
+                .set({ tracked: !trackTowardsSpending })
+                .where(eq(transactions.id, transaction.id))
+                .returning();
+            if (persistTransaction.length !== 1) {
+                console.log("Something went wrong updating the transaction");
+                throw new Error("Update transaction error");
+            }
+            updatedTransaction = persistTransaction[0];
         }
-        const updatedTransaction = persistTransaction[0];
+
         console.log("Updated transaction: ", updatedTransaction);
         /* Update the global context record */
         let updatedUsersTransactions: GlobalUserTransaction[] = user.transactions.map((t) => {
@@ -67,15 +82,19 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
         */
         if (transaction.trackedGoals.some(goal => goal === goalId)) {
             console.log("remove the goal");
-            await dataStore.delete(transactionGoalJunction)
-                .where(eq(transactionGoalJunction.goalId, goalId));
+            if (!mocking) {
+                await dataStore.delete(transactionGoalJunction)
+                    .where(eq(transactionGoalJunction.goalId, goalId));
+            }
             goalList = goalList.filter(g => g !== goalId);
         } else {
             /* Persist the goal transaction junction entry */
-            await dataStore.insert(transactionGoalJunction).values({
-                transactionId: transaction.id,
-                goalId: goalId
-            });
+            if (!mocking) {
+                await dataStore.insert(transactionGoalJunction).values({
+                    transactionId: transaction.id,
+                    goalId: goalId
+                });
+            }
             goalList.push(goalId);
         }
 
@@ -127,28 +146,28 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                     </View>
                     <View style={styles.transactionCardTrackTowardsGoals}>
                         <Text>Track towards goals:</Text>
-                            {user.goals.map((goal) => {
-                                return (
-                                    <TouchableOpacity key={goal.id} onPress={(e) => {
-                                        e.stopPropagation();
-                                        trackGoal(goal.id)
-                                    }}
-                                        style={styles.transactionCardTrackTowardsGoalsGoalCard}
+                        {user.goals.map((goal) => {
+                            return (
+                                <TouchableOpacity key={goal.id} onPress={(e) => {
+                                    e.stopPropagation();
+                                    trackGoal(goal.id)
+                                }}
+                                    style={styles.transactionCardTrackTowardsGoalsGoalCard}
+                                >
+                                    <Text>{goal.name}</Text>
+                                    <View
+
+
                                     >
-                                        <Text>{goal.name}</Text>
-                                        <View
-
-
-                                        >
-                                            {transaction.trackedGoals.some((goalId) => goalId === goal.id) ?
-                                                <Ionicons name="close" size={16} color="#000" />
-                                                :
-                                                <Ionicons name="add-outline" size={16} color="#000" />
-                                            }
-                                        </View>
-                                    </TouchableOpacity>
-                                )
-                            })}
+                                        {transaction.trackedGoals.some((goalId) => goalId === goal.id) ?
+                                            <Ionicons name="close" size={16} color="#000" />
+                                            :
+                                            <Ionicons name="add-outline" size={16} color="#000" />
+                                        }
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                        })}
                     </View>
                 </View>
             }
