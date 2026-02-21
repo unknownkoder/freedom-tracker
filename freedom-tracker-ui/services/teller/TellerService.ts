@@ -1,14 +1,16 @@
-import { AccountDetails, AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerTransaction } from "@/types/teller";
-import { GlobalUserTransaction, useGlobalContext } from "./GlobalContext";
+import { AccountDetails, AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerAccountResponse, TellerTransaction } from "@/types/teller";
+
 import * as schema from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { GlobalUser, GlobalUserTransaction } from "../GlobalContext";
+import { ITellerService } from "@/types/services";
 
-export default function useTeller() {
+export default function TellerService(dataStore:any, user?:GlobalUser):ITellerService {
     const server = process.env.EXPO_PUBLIC_SERVER_URI;
     const APPEND_TRANSACTIONS = process.env.EXPO_PUBLIC_REFETCH_TRANSACTIONS;
-    const { dataStore, user } = useGlobalContext();
+    
 
-    const fetchAccountsByAccessToken = async (accessToken: string) => {
+    const fetchAccountsByAccessToken = async (accessToken: string): Promise<TellerAccountResponse[]> => {
         const res = await fetch(`http://${server}:8000/api/accounts`, {
             method: 'GET',
             headers: {
@@ -21,14 +23,14 @@ export default function useTeller() {
         return data;
     }
 
-    const persistConnection = async (connection: schema.Connection, userId: number) => {
+    const persistConnection = async (connection: schema.Connection, userId: number): Promise<schema.Connection> => {
         const persistedConnection = await dataStore.insert(schema.connections)
             .values({ accessToken: connection.accessToken, enrollmentId: connection.enrollmentId, tellerUserId: connection.tellerUserId, userId })
             .returning();
         return persistedConnection[0];
     }
 
-    const persistAccount = async (account: schema.Account, connectionId: number) => {
+    const persistAccount = async (account: schema.Account, connectionId: number): Promise<schema.Account> => {
         const persistedAccount = await dataStore.insert(schema.accounts)
             .values({
                 ...account,

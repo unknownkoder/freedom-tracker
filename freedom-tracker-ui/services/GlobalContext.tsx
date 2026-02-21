@@ -1,9 +1,18 @@
+import Constants from 'expo-constants';
+
+/* DB related imports */
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { desc } from 'drizzle-orm';
 import { useSQLiteContext } from 'expo-sqlite';
 import { use, createContext, type PropsWithChildren, useState } from 'react';
-
 import * as schema from '@/db/schema';
+
+/* Teller service imports */
+import { ITellerService } from '@/types/services';
+import MockTellerService from './teller/MockTellerService';
+import TellerService from './teller/TellerService';
+
+
 import useMockService from './MockService';
 
 export type GlobalContextType = {
@@ -14,6 +23,7 @@ export type GlobalContextType = {
     fetchUserFromDatabase: (mocking?:boolean) => void;
     updateUserState: (user: GlobalUser | undefined) => void;
     updateLoadingState: (loading: boolean) => void;
+    getTellerService: () => ITellerService;
 };
 
 export interface GlobalUserTransaction extends schema.Transaction {
@@ -41,6 +51,8 @@ export const useGlobalContext = () => {
 }
 
 export function GlobalContextProvider({ children }: PropsWithChildren) {
+
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
     const {fetchMockUser} = useMockService();
 
@@ -111,6 +123,20 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
         }
     }
 
+    let tellerService: ITellerService | undefined;
+
+    const getTellerService = ():ITellerService => {
+        if(tellerService === undefined){
+            if(mocking){
+                tellerService = MockTellerService();
+            } else {
+                tellerService = TellerService(dataStore, user);
+            }
+            return tellerService;
+        }
+        return tellerService;
+    }
+
     return (
         <GlobalContext.Provider
             value={{
@@ -120,7 +146,8 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                 loadUserError,
                 fetchUserFromDatabase,
                 updateUserState,
-                updateLoadingState
+                updateLoadingState,
+                getTellerService
             }}
         >
             {children}

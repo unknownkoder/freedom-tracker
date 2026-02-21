@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator, GestureResponderEvent, ScrollView } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from "@expo/vector-icons";
 import * as schema from '@/db/schema';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGlobalContext } from '@/services/GlobalContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useTeller from '@/services/TellerService';
 import { LinkAccountButton } from '@/components/LinkAccountButton';
 import { ConnectAccountCallback, TellerAccountResponse, TellerConnectResponse } from '@/types/teller';
 import { SetupScreenGoalCard } from '@/components/Goals/SetupScreenGoalCard';
@@ -22,8 +20,8 @@ export type GoalSetup = {
 
 const SetupSplash = () => {
 
-    const { user, dataStore, updateUserState } = useGlobalContext();
-    const { persistConnection, persistAccount } = useTeller();
+    const { user, dataStore, updateUserState, getTellerService } = useGlobalContext();
+    const { persistConnection, persistAccount } = getTellerService();
 
     const [usersName, setUsersName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);

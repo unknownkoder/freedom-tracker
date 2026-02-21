@@ -3,7 +3,7 @@
         {
             "id": 1,
             "name": "New Car Savings",
-            "amount": 1000.00,
+            "amount": "1000.00",
             "startDate": "2026/02/04",
             "endDate": "2026/4/30",
             "type": "SAVINGS",
@@ -14,7 +14,7 @@
         {
             "id": 2,
             "name": "Weekly Spending Budget",
-            "amount": 300.00,
+            "amount": "300.00",
             "startDate": "2026/02/04",
             "endDate": null,
             "type": "BUDGET",
@@ -25,7 +25,7 @@
         {
             "id": 3,
             "name": "Pay Off Student Loans",
-            "amount": 4000.000,
+            "amount": "4000.000",
             "startDate": "2026/02/04",
             "endDate": "2026/12/31",
             "type": "DEBT",

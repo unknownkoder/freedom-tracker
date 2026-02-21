@@ -1,6 +1,6 @@
 {
-    "accounts": {
-        "mock_acc_1": {
+    "accounts": [
+        {
             "id": "mock_acc_1",
             "institution": "Bank of America",
             "lastFour": "1234",
@@ -13,7 +13,7 @@
             "balance": "7000.00",
             "connectionId": 1
         },
-        "mock_acc_2": {
+        {
             "id": "mock_acc_2",
             "institution": "Discover",
             "lastFour": "5678",
@@ -26,7 +26,7 @@
             "balance": "10000.00",
             "connectionId": 2
         },
-        "mock_acc_3": {
+        {
             "id": "mock_acc_3",
             "institution": "Chase",
             "lastFour": "5678",
@@ -39,5 +39,5 @@
             "balance": "1300.00",
             "connectionId": 3
         }
-    }
+    ]
 }

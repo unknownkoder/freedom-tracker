@@ -5,7 +5,6 @@ import { GlobalUserTransaction, useGlobalContext } from "@/services/GlobalContex
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinkAccountButton } from "@/components/LinkAccountButton";
 import { useEffect } from "react";
-import useTeller from "@/services/TellerService";
 import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 import { SpendingOverview } from "@/components/SpendingOverview";
 import Constants from "expo-constants";
@@ -17,8 +16,8 @@ export default function Index() {
 
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
-    const { user, loading, updateUserState, updateLoadingState } = useGlobalContext();
-    const { persistConnection, persistAccount, fetchAndPersistAccountDetails } = useTeller();
+    const { user, loading, updateUserState, updateLoadingState, getTellerService } = useGlobalContext();
+    const { persistConnection, persistAccount, fetchAndPersistAccountDetails } = getTellerService();
     const { fetchAndPersistMockAccountDetails, getMockConnection, getMockAccount } = useMockService();
 
     const router = useRouter();

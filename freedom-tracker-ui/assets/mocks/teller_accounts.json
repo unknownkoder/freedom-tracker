@@ -2,7 +2,7 @@
     "accounts": [
         {
             "currency": "USD",
-            "enrollmentId": "mock_enrollment_1",
+            "enrollmentId": "mock_enrollment_2",
             "id": "mock_acc_2",
             "institution": {
                 "id": "mock_institution_1",
@@ -17,7 +17,7 @@
         },
         {
             "currency": "USD",
-            "enrollmentId": "mock_enrollment_1",
+            "enrollmentId": "mock_enrollment_3",
             "id": "mock_acc_3",
             "institution": {
                 "id": "mock_institution_2",

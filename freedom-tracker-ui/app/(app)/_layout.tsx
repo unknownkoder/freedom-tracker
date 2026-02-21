@@ -1,5 +1,4 @@
 import { useGlobalContext } from "@/services/GlobalContext";
-import useTeller from "@/services/TellerService";
 import { AccountDetailsRequest } from "@/types/teller";
 import { Stack } from "expo-router"
 import { useEffect } from "react"
@@ -10,8 +9,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function RootLayout() {
 
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
-    const { user, updateUserState, updateLoadingState } = useGlobalContext();
-    const { fetchAndPersistAccountDetails } = useTeller();
+    const { user, updateUserState, updateLoadingState, getTellerService } = useGlobalContext();
+    const { fetchAndPersistAccountDetails } = getTellerService();
     const { fetchAndPersistMockAccountDetails } = useMockService();
 
     const loadUserAccountInfo = async () => {

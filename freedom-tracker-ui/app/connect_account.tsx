@@ -1,11 +1,10 @@
 import { useGlobalContext } from "@/services/GlobalContext";
-import useTeller from "@/services/TellerService";
+import useTellerService from "@/services/teller/TellerService";
 import { useEffect, useRef, useState } from "react";
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 
-import * as schema from "@/db/schema";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 import Constants from "expo-constants";
@@ -28,7 +27,8 @@ const ConnectAccount = () => {
     const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
 
     const { redirect } = useLocalSearchParams();
-    const { fetchAccountsByAccessToken } = useTeller();
+    const {getTellerService} = useGlobalContext();
+    const { fetchAccountsByAccessToken } = getTellerService();
 
     type ConnectWebViewCallback = {
         data: TellerConnectResponse,

@@ -1,25 +1,25 @@
 {
-    "connections": {
-        "mock_acc_1": {
+    "connections": [
+        {
             "id": 1,
-            "accessToken": "mock_acc_1_access",
+            "accessToken": "access_token_1",
             "enrollmentId": "mock_acc_1_enrollment",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },
-        "mock_acc_2": {
+        {
             "id": 2,
-            "accessToken": "mock_acc_2_access",
+            "accessToken": "access_token_2",
             "enrollmentId": "mock_acc_2_enrollment",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },
-        "mock_acc_3": {
+        {
             "id": 3,
-            "accessToken": "mock_acc_3_access",
+            "accessToken": "access_token_2",
             "enrollmentId": "mock_acc_3_enrollment",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },
-    }
+    ]
 }
