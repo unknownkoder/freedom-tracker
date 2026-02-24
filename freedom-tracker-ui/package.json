@@ -9,15 +9,19 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "start:mocks": "APP_ENV=mocks expo start"
+    "start:dev": "APP_ENV=dev expo start",
+    "start:test": "APP_ENV=test expo start",
+    "start:mocks": "APP_ENV=mock expo start"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/datetimepicker": "^8.6.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "babel-plugin-inline-import": "^3.0.0",
+    "dotenv": "^17.3.1",
     "drizzle-orm": "^0.44.6",
     "expo": "~54.0.13",
     "expo-constants": "~18.0.9",

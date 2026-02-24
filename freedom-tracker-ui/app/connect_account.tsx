@@ -9,14 +9,22 @@ import * as schema from "@/db/schema";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 
+import Constants from "expo-constants";
+import useMockService from "@/services/MockService";
+
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
+
+    const {getMockTellerConnectResponse, getMockTellerAccounts} = useMockService();
 
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
 
-    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>();
+    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => {
+        if(mocking) return getMockTellerConnectResponse();
+    });
     const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
     const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
 
@@ -31,6 +39,7 @@ const ConnectAccount = () => {
     const handleEnroll = (event: WebViewMessageEvent) => {
         const callbackData: ConnectWebViewCallback = JSON.parse(event.nativeEvent.data);
         const enrollmentData: TellerConnectResponse = callbackData.data;
+        console.log(enrollmentData);
         setEnrollmentData(enrollmentData);
     }
 
@@ -42,7 +51,12 @@ const ConnectAccount = () => {
     }, [enrollmentData])
  
     const getAccounts = async () => {
-        const connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
+        let connectedAccounts;
+        if(mocking){
+            connectedAccounts = getMockTellerAccounts();
+        } else {
+            connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
+        }
         setAccounts(connectedAccounts);
         setLoadingConnectedAccounts(false);
     }

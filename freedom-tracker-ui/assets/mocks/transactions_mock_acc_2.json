@@ -1,0 +1,17 @@
+{
+  "transactions": 
+    [
+        {
+            "id": 67,
+            "tellerTransactionId": "mock_txn_067",
+            "amount": "25.01",
+            "date": "2025-{0.month}-30",
+            "category": "general",
+            "counterPartyName": "Discover",
+            "counterPartyType": "organization",
+            "type": "payment",
+            "tracked": true,
+            "accountId": "mock_acc_2"
+        }    
+    ]
+}

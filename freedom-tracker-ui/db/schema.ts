@@ -29,14 +29,17 @@ export const accounts = sqliteTable('accounts', {
 })
 
 export type GoalType = 'BUDGET' | 'DEBT' | 'SAVING';
+export type OccuranceType = 'WEEKLY' | 'MONTHLY' | 'YEARLY' | null;
 
 export const goals = sqliteTable('goals', {
     id: integer('id').primaryKey({ autoIncrement: true }),
     name: text('name'),
     amount: numeric('amount').default('0.0'),
-    duration: integer('duration').default(30),
+    startDate: text('startDate').notNull(),
+    endDate: text('endDate'),
     type: text('type').$type<GoalType>().notNull(),
-    resetStartOfMonth: integer('reset_on_month', { mode: 'boolean' }).default(true),
+    recurring: integer('recurring', {mode: 'boolean'}).default(false),
+    occuranceType: text('occurance_type').$type<OccuranceType>().default(null),
     userId: integer('user_id').references(() => user.id)
 });
 

@@ -6,13 +6,14 @@ import { use, createContext, type PropsWithChildren, useState } from 'react';
 import * as schema from '@/db/schema';
 import useTeller from './TellerService';
 import { AccountDetailsRequest } from '@/types/teller';
+import useMockService from './MockService';
 
 export type GlobalContextType = {
     dataStore: any;
     user?: GlobalUser | undefined;
     loading: boolean;
     loadUserError: boolean;
-    fetchUserFromDatabase: () => void;
+    fetchUserFromDatabase: (mocking?:boolean) => void;
     updateUserState: (user: GlobalUser | undefined) => void;
     updateLoadingState: (loading: boolean) => void;
 };
@@ -41,6 +42,8 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
 
     //const { fetchAndPersistAccountDetails } = useTeller();
 
+    const {fetchMockUser} = useMockService();
+
     const [loading, setLoading] = useState<boolean>(true);
     const [loadUserError, setLoadUserError] = useState<boolean>(false);
     const [user, setUser] = useState<GlobalUser | undefined>();
@@ -56,29 +59,33 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
         setUser(updatedUser);
     }
 
-    const fetchUserFromDatabase = async () => {
+    const fetchUserFromDatabase = async (mocking?: boolean) => {
         try {
             setLoadUserError(false);
             setLoading(true);
 
-            const appUser = dataStore.query.user.findFirst();
-            const connections = dataStore.query.connections.findMany();
-            const accounts = dataStore.query.accounts.findMany();
-            const goals = dataStore.query.goals.findMany();
-            const transactions = dataStore.select().from(schema.transactions).orderBy(desc(schema.transactions.date));
+            if (mocking) {
+                setUser(fetchMockUser());
+            } else {
+                const appUser = dataStore.query.user.findFirst();
+                const connections = dataStore.query.connections.findMany();
+                const accounts = dataStore.query.accounts.findMany();
+                const goals = dataStore.query.goals.findMany();
+                const transactions = dataStore.select().from(schema.transactions).orderBy(desc(schema.transactions.date));
 
-            const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions]
-                = await Promise.all([appUser, connections, accounts, goals, transactions]);
+                const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions]
+                    = await Promise.all([appUser, connections, accounts, goals, transactions]);
 
-            if (persistedUser) {
-                setUser({
-                    id: persistedUser.id,
-                    nickname: persistedUser.nickname,
-                    goals: persistedGoals ?? [],
-                    connections: persistedConnections ?? [],
-                    accounts: persistedAccounts ?? [],
-                    transactions: persistedTransactions ?? []
-                });
+                if (persistedUser) {
+                    setUser({
+                        id: persistedUser.id,
+                        nickname: persistedUser.nickname,
+                        goals: persistedGoals ?? [],
+                        connections: persistedConnections ?? [],
+                        accounts: persistedAccounts ?? [],
+                        transactions: persistedTransactions ?? []
+                    });
+                }
             }
         } catch (e) {
             setLoadUserError(true);

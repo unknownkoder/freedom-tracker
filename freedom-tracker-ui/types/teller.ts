@@ -45,7 +45,7 @@ export type TellerAccountResponse = {
     id: string,
     institution: TellerConnectInstitution,
     last_four: string,
-    links: TellerAccountResponseLinks,
+    links: TellerAccountResponseLinks[],
     name: string,
     type: TellerAccountResponseType,
     subtype: TellerAccountResponseSubtype,
