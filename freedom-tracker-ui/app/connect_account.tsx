@@ -5,22 +5,21 @@ import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from "react
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 
-import * as schema from "@/db/schema";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
-
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
+
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
-    const {getMockTellerConnectResponse, getMockTellerAccounts} = useMockService();
-
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
+
+    const {getMockTellerConnectResponse, getMockTellerAccounts} = useMockService();
 
     const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => {
         if(mocking) return getMockTellerConnectResponse();
@@ -81,7 +80,7 @@ const ConnectAccount = () => {
         } else {
             return "Select account to link:"
         }
-    }
+    } 
 
     return (
         <SafeAreaProvider>

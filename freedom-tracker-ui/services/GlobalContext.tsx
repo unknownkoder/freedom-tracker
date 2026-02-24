@@ -1,11 +1,10 @@
 import { drizzle } from 'drizzle-orm/expo-sqlite';
-import { asc, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { useSQLiteContext } from 'expo-sqlite';
 import { use, createContext, type PropsWithChildren, useState } from 'react';
 
 import * as schema from '@/db/schema';
-import useTeller from './TellerService';
-import { AccountDetailsRequest } from '@/types/teller';
+
 import useMockService from './MockService';
 
 export type GlobalContextType = {
@@ -40,8 +39,6 @@ export const useGlobalContext = () => {
 
 export function GlobalContextProvider({ children }: PropsWithChildren) {
 
-    //const { fetchAndPersistAccountDetails } = useTeller();
-
     const {fetchMockUser} = useMockService();
 
     const [loading, setLoading] = useState<boolean>(true);
@@ -51,7 +48,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
     const db = useSQLiteContext();
     const dataStore = drizzle(db, { schema });
 
-    const updateLoadingState = (loading:boolean) => {
+    const updateLoadingState = (loading: boolean) => {
         setLoading(loading);
     }
 
@@ -92,7 +89,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
         } finally {
             setLoading(false);
         }
-    } 
+    }
 
     return (
         <GlobalContext.Provider

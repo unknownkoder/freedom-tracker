@@ -6,8 +6,7 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { GlobalContextProvider, useGlobalContext } from "@/services/GlobalContext";
 import { SplashScreenController } from "@/components/SplashScreenController";
 import { resetDB } from "@/db/resetdb";
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
-import Constants from "expo-constants";
+
 import { isFeatureEnabled } from "@/services/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import * as schema from '@/db/schema';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useGlobalContext } from "@/services/GlobalContext";
@@ -10,6 +10,7 @@ import { AccountDetailsRequest, ConnectAccountCallback, TellerAccountResponse, T
 import { SpendingOverview } from "@/components/SpendingOverview";
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
+import { GoalTrackingCard } from "@/components/Goals/GoalTrackingCard";
 
 export default function Index() {
 
@@ -121,7 +122,7 @@ export default function Index() {
     }
 
     const isTransactionThisMonth = (transaction: schema.Transaction) => {
-        if(!transaction.date) return false;
+        if (!transaction.date) return false;
         const today = new Date();
         return today.getMonth() === +transaction.date.split('-')[1] - 1;
     }
@@ -158,6 +159,32 @@ export default function Index() {
                                         />
                                     }
                                     <View>
+                                        <Text>Goals</Text>
+                                        <View>
+                                            {user?.goals?.length > 0 &&
+                                                <FlatList<schema.Goal>
+                                                    data={user.goals}
+                                                    renderItem={(item) => {
+                                                        const today = new Date(); 
+                                                         const endDate = item.item.recurring ?
+                                                            null
+                                                            :
+                                                            item.item.endDate ?
+                                                                new Date(item.item.endDate.replaceAll("/", "-"))
+                                                                :
+                                                                null;
+                                                        if(endDate && today > new Date(endDate)){
+                                                            return null;
+                                                        }
+                                                        
+                                                        return (
+                                                            <GoalTrackingCard goal={item.item} />
+                                                        )
+                                                    }}
+                                                    keyExtractor={(item, index) => String(index)}
+                                                ></FlatList>
+                                            }
+                                        </View>
                                         <Text>Transactions</Text>
                                         {user?.transactions?.length > 0 && <FlatList<schema.Transaction>
                                             data={user.transactions}
