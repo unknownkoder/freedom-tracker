@@ -60,6 +60,7 @@ export class AccountsService {
         const client = this.getMtlsClient(accessToken);
         try{
             const res = await client.get(`/${accountId}/transactions${transactionId ? `?from_id=${transactionId}` : ''}`);
+            console.log(res.data);
             return res.data;
         } catch(e){
             console.log(e);

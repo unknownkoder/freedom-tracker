@@ -9,15 +9,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function RootLayout() {
 
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
-    const { user, updateUserState, updateLoadingState, getTellerService } = useGlobalContext();
+    const { user, getTellerService, getUserService } = useGlobalContext();
+    const {setUser} = getUserService();
     const { fetchAndPersistAccountDetails } = getTellerService();
     const { fetchAndPersistMockAccountDetails } = useMockService();
 
     const loadUserAccountInfo = async () => {
         const initialBoot = await AsyncStorage.getItem('initial-boot');
         if (user && initialBoot === 'true') {
+            //End goal just call fetchAndPersistAccountDetails
+            //Refactor fetchAndPersistAccountDetails so it has the body mapping inside it
+            //fetchAndPersistAccountDetails()
+            /*
             console.log("~~~ loadUserAccountInfo ~~~")
-            updateLoadingState(true);
+            //updateLoadingState(true);
             const accounts = user.accounts;
             const connections = user.connections;
             const transactions = user.transactions;
@@ -49,12 +54,12 @@ export default function RootLayout() {
                 try {
 
                     const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
-                    updateUserState({
+                    setUser({
                         ...user,
                         accounts,
                         transactions
                     })
-                    updateLoadingState(false);
+                    //updateLoadingState(false);
                 } catch (e) {
                     console.log(e);
                 }
@@ -62,13 +67,14 @@ export default function RootLayout() {
                 console.log("deal with mocking stuff");
                 console.log("request body: ", accountDetailsRequestBody);
                 const { accounts, transactions } = fetchAndPersistMockAccountDetails(accountDetailsRequestBody);
-                updateUserState({
+                setUser({
                     ...user,
                     accounts,
                     transactions
                 })
-                updateLoadingState(false);
+                //updateLoadingState(false);
             }
+            */
         }
         await AsyncStorage.setItem('initial-boot', 'false');
     }

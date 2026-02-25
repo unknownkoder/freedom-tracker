@@ -8,6 +8,7 @@ import { SplashScreenController } from "@/components/SplashScreenController";
 import { resetDB } from "@/db/resetdb";
 import { isFeatureEnabled } from "@/services/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { connections, transactions } from "@/db/schema";
 
 const DATABASE_NAME = 'freedom_db';
 
@@ -48,6 +49,14 @@ export default function RootLayout() {
 function RootNavigator() {
     const { user } = useGlobalContext();
     const guard = user && user?.id > 0
+    
+    console.log("~~~ Root Navigator User ~~~");
+    console.log("userId: ", user?.id)
+    console.log("nickname: ", user?.nickname);
+    console.log("connections: ", user?.connections.map(c => c.id));
+    console.log("accounts: ", user?.accounts.map(a => a.id));
+    console.log("goals: ", user?.goals.map(g => g.id));
+    console.log("transactions: ", user?.transactions.length);
 
     return (
         <Stack screenOptions={{ headerShown: false }}>

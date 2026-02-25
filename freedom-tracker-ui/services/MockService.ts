@@ -76,17 +76,20 @@ export default function useMockService() {
             id: user.id,
             nickname: user.nickname,
             goals: [...dateMappedGoals],
-            connections: [connections.mock_acc_1],
-            accounts: [accounts.mock_acc_1],
+            connections: [],
+            accounts: [],
             transactions: [...globalUserTransactions]
         }
     }
 
     const fetchAndPersistMockAccountDetails = (accountDetailsRequest: AccountDetailsRequest[]): FetchAndPersistAccountInfoResponse => {
         console.log("~~~ fetchAndPersistMockAccountDetails ~~~")
+        /*
         const mockedAccounts = accountDetailsRequest.map((account) => {
             return accounts[account.accountId];
         })
+        */
+        const mockedAccounts = [];
 
         console.log("mockedAccounts: ", mockedAccounts);
 

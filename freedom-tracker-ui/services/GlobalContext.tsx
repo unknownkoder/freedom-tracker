@@ -8,22 +8,21 @@ import { use, createContext, type PropsWithChildren, useState } from 'react';
 import * as schema from '@/db/schema';
 
 /* Teller service imports */
-import { ITellerService } from '@/types/services';
+import { GlobalContextReducers, ITellerService, IUserService } from '@/types/services';
 import MockTellerService from './teller/MockTellerService';
 import TellerService from './teller/TellerService';
 
 
-import useMockService from './MockService';
+import UserService from './user/UserService';
+import MockUserService from './user/MockUserService';
 
 export type GlobalContextType = {
     dataStore: any;
     user?: GlobalUser | undefined;
     loading: boolean;
     loadUserError: boolean;
-    fetchUserFromDatabase: (mocking?:boolean) => void;
-    updateUserState: (user: GlobalUser | undefined) => void;
-    updateLoadingState: (loading: boolean) => void;
     getTellerService: () => ITellerService;
+    getUserService: () => IUserService;
 };
 
 export interface GlobalUserTransaction extends schema.Transaction {
@@ -52,87 +51,53 @@ export const useGlobalContext = () => {
 
 export function GlobalContextProvider({ children }: PropsWithChildren) {
 
-    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
-
-    const {fetchMockUser} = useMockService();
-
-    const [loading, setLoading] = useState<boolean>(true);
-    const [loadUserError, setLoadUserError] = useState<boolean>(false);
-    const [user, setUser] = useState<GlobalUser | undefined>();
-
     const db = useSQLiteContext();
     const dataStore = drizzle(db, { schema });
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
+    const [loading, setLoading] = useState<boolean>(true);
     const updateLoadingState = (loading: boolean) => {
         setLoading(loading);
     }
 
+    const [loadUserError, setLoadUserError] = useState<boolean>(false);
+    const updateLoadUserError = (error: boolean) => {
+        setLoadUserError(error);
+    }
+
+    const [user, setUser] = useState<GlobalUser | undefined>();
     const updateUserState = (updatedUser: GlobalUser | undefined) => {
         setUser(updatedUser);
     }
 
-    const fetchUserFromDatabase = async (mocking?: boolean) => {
-        try {
-            setLoadUserError(false);
-            setLoading(true);
+    const reducers: GlobalContextReducers = {
+        updateUserState,
+        updateLoadUserError,
+        updateLoadingState
+    };
 
+    let userService: IUserService | undefined;
+    const getUserService = (): IUserService => {
+        if (userService === undefined) {
             if (mocking) {
-                setUser(fetchMockUser());
+                userService = MockUserService(reducers);
             } else {
-                const appUser = dataStore.query.user.findFirst();
-                const connections = dataStore.query.connections.findMany();
-                const accounts = dataStore.query.accounts.findMany();
-                const goals = dataStore.query.goals.findMany();
-                const transactions = dataStore.select().from(schema.transactions).orderBy(desc(schema.transactions.date));
-                const transactionsGoalsJunction = dataStore.query.transactionGoalJunction.findMany();
-
-                const [persistedUser, persistedConnections, persistedAccounts, persistedGoals, persistedTransactions, persistedTransactionsGoalsJunction]
-                    = await Promise.all([appUser, connections, accounts, goals, transactions, transactionsGoalsJunction]);
-
-                console.log("Transaction Goal Junctions:", persistedTransactionsGoalsJunction);
-                const globalUserTransactions:GlobalUserTransaction[] = persistedTransactions.map((t) => {
-                    
-                    let goals: number[] = [];
-                    persistedTransactionsGoalsJunction.forEach((tg) => {
-                        if(tg.transactionId === t.id) goals.push(tg.goalId);
-                    })
-                    
-                    return {
-                        ...t,
-                        trackedGoals: goals
-                    }
-                })
-                
-                
-
-                if (persistedUser) {
-                    setUser({
-                        id: persistedUser.id,
-                        nickname: persistedUser.nickname,
-                        goals: persistedGoals ?? [],
-                        connections: persistedConnections ?? [],
-                        accounts: persistedAccounts ?? [],
-                        transactions: globalUserTransactions ?? []
-                    });
-                }
+                userService = UserService(dataStore, reducers);
             }
-        } catch (e) {
-            setLoadUserError(true);
-        } finally {
-            setLoading(false);
         }
+
+        return userService;
     }
 
     let tellerService: ITellerService | undefined;
 
-    const getTellerService = ():ITellerService => {
-        if(tellerService === undefined){
-            if(mocking){
+    const getTellerService = (): ITellerService => {
+        if (tellerService === undefined) {
+            if (mocking) {
                 tellerService = MockTellerService();
             } else {
                 tellerService = TellerService(dataStore, user);
             }
-            return tellerService;
         }
         return tellerService;
     }
@@ -144,9 +109,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
                 user,
                 loading,
                 loadUserError,
-                fetchUserFromDatabase,
-                updateUserState,
-                updateLoadingState,
+                getUserService,
                 getTellerService
             }}
         >

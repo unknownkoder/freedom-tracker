@@ -78,6 +78,14 @@ export default function MockDataProvider():IMockDataProvider{
 
     const goals:schema.Goal[] = mockGoals.goals as schema.Goal[];
 
+    const dateMappedGoals = goals.map((goal) => {
+        const today = new Date();
+        return {
+            ...goal,
+            startDate: today.toISOString()
+        }
+    }) as schema.Goal[];
+
     return {
         user,
         connections,
@@ -85,6 +93,6 @@ export default function MockDataProvider():IMockDataProvider{
         enrollmentData,
         tellerAccounts,
         transactions,
-        goals
+        goals: dateMappedGoals
     }
 }

@@ -40,6 +40,9 @@ export default function TellerService(dataStore:any, user?:GlobalUser):ITellerSe
         return persistedAccount[0];
     }
 
+    //Refactor so that this takes in the user from global context
+    //Make a util function that maps the user to the AccountDetailsRequest object
+    //Fetch the data like normal
     const fetchAndPersistAccountDetails = async (accounts: AccountDetailsRequest[]): Promise<FetchAndPersistAccountInfoResponse> => {
         try {
             const res = await fetch(`http://${server}:8000/api/accounts/details`, {

@@ -16,7 +16,8 @@ export default function Index() {
 
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
-    const { user, loading, updateUserState, updateLoadingState, getTellerService } = useGlobalContext();
+    const { user, loading, getTellerService, getUserService } = useGlobalContext();
+    const {setUser} = getUserService();
     const { persistConnection, persistAccount, fetchAndPersistAccountDetails } = getTellerService();
     const { fetchAndPersistMockAccountDetails, getMockConnection, getMockAccount } = useMockService();
 
@@ -24,7 +25,7 @@ export default function Index() {
     const { callback } = useLocalSearchParams();
 
     const persistNewConnectionAndAccount = async (enrollment: TellerConnectResponse, account: TellerAccountResponse) => {
-        updateLoadingState(true);
+        //updateLoadingState(true);
         if (user) {
 
             const connection: schema.Connection = {
@@ -93,13 +94,13 @@ export default function Index() {
 
                 console.log(accounts);
 
-                updateUserState({
+                setUser({
                     ...user,
                     accounts: accounts,
                     connections: [...user.connections, persistedConnection],
                     transactions: transactions
-                })
-                updateLoadingState(false);
+                }) 
+                //updateLoadingState(false);
             } catch (e) {
                 console.log(e);
             }
@@ -142,7 +143,7 @@ export default function Index() {
                         :
                         <View>
                             <Text>Welcome {user.nickname}</Text>
-                            {loading ?
+                            {/*{loading ?
                                 <ActivityIndicator size="large" />
                                 :
                                 <View>
@@ -201,7 +202,7 @@ export default function Index() {
                                         />}
                                     </View>
                                 </View>
-                            }
+                            }*/}
                         </View>
                     }
                 </View>
