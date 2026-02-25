@@ -1,0 +1,43 @@
+{
+    "accounts": {
+        "mock_acc_1": {
+            "id": "mock_acc_1",
+            "institution": "Bank of America",
+            "lastFour": "1234",
+            "name": "Primary Checking",
+            "isPrimary": true,
+            "status": "open",
+            "subtype": "checking",
+            "type": "depository",
+            "currency": "USD",
+            "balance": "7000.00",
+            "connectionId": 1
+        },
+        "mock_acc_2": {
+            "id": "mock_acc_2",
+            "institution": "Discover",
+            "lastFour": "5678",
+            "name": "High Interest Savings",
+            "isPrimary": false,
+            "status": "open",
+            "subtype": "savings",
+            "type": "depository",
+            "currency": "USD",
+            "balance": "10000.00",
+            "connectionId": 2
+        },
+        "mock_acc_3": {
+            "id": "mock_acc_3",
+            "institution": "Chase",
+            "lastFour": "5678",
+            "name": "Credit Card",
+            "isPrimary": false,
+            "status": "open",
+            "subtype": "credit_card",
+            "type": "credit",
+            "currency": "USD",
+            "balance": "1300.00",
+            "connectionId": 3
+        }
+    }
+}

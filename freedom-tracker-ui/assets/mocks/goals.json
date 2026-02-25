@@ -1,0 +1,37 @@
+{
+    "goals": [
+        {
+            "id": 1,
+            "name": "New Car Savings",
+            "amount": 1000.00,
+            "startDate": "2026/02/04",
+            "endDate": "2026/4/30",
+            "type": "SAVINGS",
+            "recurring": false,
+            "occuranceType": "WEEKLY",
+            "userId": 1
+        },
+        {
+            "id": 2,
+            "name": "Weekly Spending Budget",
+            "amount": 300.00,
+            "startDate": "2026/02/04",
+            "endDate": null,
+            "type": "BUDGET",
+            "recurring": true,
+            "occuranceType": "WEEKLY",
+            "userId": 1
+        },
+        {
+            "id": 3,
+            "name": "Pay Off Student Loans",
+            "amount": 4000.000,
+            "startDate": "2026/02/04",
+            "endDate": "2026/12/31",
+            "type": "DEBT",
+            "recurring": false,
+            "occuranceType": "WEEKLY",
+            "userId": 1
+        }
+    ]
+}

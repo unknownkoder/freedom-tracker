@@ -3,27 +3,34 @@ import useTeller from "@/services/TellerService";
 import { AccountDetailsRequest } from "@/types/teller";
 import { Stack } from "expo-router"
 import { useEffect } from "react"
+import Constants from "expo-constants";
+import useMockService from "@/services/MockService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RootLayout() {
 
+    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
     const { user, updateUserState, updateLoadingState } = useGlobalContext();
-    const {fetchAndPersistAccountDetails} = useTeller();
+    const { fetchAndPersistAccountDetails } = useTeller();
+    const { fetchAndPersistMockAccountDetails } = useMockService();
 
     const loadUserAccountInfo = async () => {
-        updateLoadingState(true);
-        if (user) {
+        const initialBoot = await AsyncStorage.getItem('initial-boot');
+        if (user && initialBoot === 'true') {
+            console.log("~~~ loadUserAccountInfo ~~~")
+            updateLoadingState(true);
             const accounts = user.accounts;
             const connections = user.connections;
             const transactions = user.transactions;
             const accountDetailsRequestBody: AccountDetailsRequest[] = accounts.map((account) => {
                 const accessToken = connections.filter(connection => connection.id === account.connectionId)[0].accessToken;
-                
+
                 let transactionId = '';
                 if (transactions.length && transactions.some((t => t.accountId === account.id))) {
                     const lastAccountTransaction = transactions.filter(t => t.accountId === account.id)[0];
                     transactionId = lastAccountTransaction.tellerTransactionId || '';
                 }
-                
+
                 const body = transactionId !== '' ?
                     {
                         accountId: account.id,
@@ -35,23 +42,36 @@ export default function RootLayout() {
                         accountId: account.id,
                         accessToken: accessToken ?? ''
                     }
-                
+
                 return body;
             })
 
-            try {
-                
-                const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
+            if (!mocking) {
+                try {
+
+                    const { accounts, transactions } = await fetchAndPersistAccountDetails(accountDetailsRequestBody);
+                    updateUserState({
+                        ...user,
+                        accounts,
+                        transactions
+                    })
+                    updateLoadingState(false);
+                } catch (e) {
+                    console.log(e);
+                }
+            } else {
+                console.log("deal with mocking stuff");
+                console.log("request body: ", accountDetailsRequestBody);
+                const { accounts, transactions } = fetchAndPersistMockAccountDetails(accountDetailsRequestBody);
                 updateUserState({
                     ...user,
                     accounts,
                     transactions
                 })
                 updateLoadingState(false);
-            } catch (e) {
-                console.log(e);
             }
         }
+        await AsyncStorage.setItem('initial-boot', 'false');
     }
 
     useEffect(() => {

@@ -25,7 +25,7 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
             }
 
             if(amount < 0){
-                runningSpending = Math.abs(amount);
+                runningSpending += Math.abs(amount);
             }
         })
 
@@ -45,10 +45,10 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
     }, [])
 
     return (
-        <View style={styles.container}>
+        <View>
             {income > 0 && spending > 0 &&
                 <View style={styles.overview}>
-                    <Text style={styles.overviewTitle}>Your month to date spending:</Text>
+                    <Text>Your month to date spending:</Text>
                     <View style={styles.overviewStats}>
                         <Text style={[styles.overviewStatIncome, styles.overviewStatText]}>
                             ${income.toFixed(2)}
@@ -76,16 +76,8 @@ export const SpendingOverview: React.FC<SpendingOverviewProps> = ({transactions}
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: 8,
-        marginBottom: 80
-    },
     overview: {
-        flex: 1,
-        gap: 4,
-        width: '100%',
-        paddingHorizontal: 8
+        padding: 8
     },
     overviewTitle: {
         fontSize: 24,

@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bf3be56c-4fc6-43ac-9fd9-1f54a4048143",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "fb5f4f5f-469e-46af-b9c7-44a347e262f1",
+  "prevId": "bf3be56c-4fc6-43ac-9fd9-1f54a4048143",
   "tables": {
     "accounts": {
       "name": "accounts",
@@ -201,13 +201,19 @@
           "autoincrement": false,
           "default": "'0.0'"
         },
-        "duration": {
-          "name": "duration",
-          "type": "integer",
+        "startDate": {
+          "name": "startDate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "endDate": {
+          "name": "endDate",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false,
-          "default": 30
+          "autoincrement": false
         },
         "type": {
           "name": "type",
