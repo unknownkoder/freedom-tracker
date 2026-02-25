@@ -111,8 +111,8 @@ const SetupSplash = () => {
 
     const generateGoals = async (user: schema.User) => {
         const goals: PersistGoalType[] = [];
-        const mapGoalSetupToPersistGoalType = (goalSetup:GoalSetup, user: schema.User): PersistGoalType => {
-           return {
+        const mapGoalSetupToPersistGoalType = (goalSetup: GoalSetup, user: schema.User): PersistGoalType => {
+            return {
                 name: goalSetup.name,
                 amount: goalSetup.amount,
                 type: goalSetup.type,

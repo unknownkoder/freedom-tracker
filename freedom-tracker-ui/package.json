@@ -16,20 +16,13 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
-<<<<<<< HEAD
-    "@react-native-community/datetimepicker": "^8.6.0",
-=======
+
     "@react-native-community/datetimepicker": "8.4.4",
->>>>>>> video4
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "babel-plugin-inline-import": "^3.0.0",
-<<<<<<< HEAD
-    "dotenv": "^17.3.1",
-=======
     "dotenv": "^17.2.3",
->>>>>>> video4
     "drizzle-orm": "^0.44.6",
     "expo": "~54.0.13",
     "expo-constants": "~18.0.9",
