@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons"
 import { useEffect, useState } from "react"
 import { TouchableOpacity, View, Text, GestureResponderEvent, StyleSheet, TextInput } from "react-native"
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GoalSetup } from "@/app/setup";
 import * as schema from "@/db/schema";
+import { GoalSetup } from "@/types/goals";
 
 interface SetupScreenGoalCardProps {
     goalType: schema.GoalType;
@@ -121,6 +121,7 @@ export const SetupScreenGoalCard: React.FC<SetupScreenGoalCardProps> = ({
 
     useEffect(() => {
         updateGoal({
+            selected: isChecked,
             name: goal.name,
             amount: goal.amount,
             type: goalType,

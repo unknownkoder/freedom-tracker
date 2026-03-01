@@ -5,30 +5,34 @@ import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from "react
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Href } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import MockDataProvider from "@/services/MockDataProvider";
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
     const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
+    const { redirect } = useLocalSearchParams<{ redirect: string }>();
+    const { setLoading, getTellerService } = useGlobalContext();
+    const { fetchAccountsByAccessToken } = getTellerService();
+    const { enrollmentData: mockEnrollmentData } = MockDataProvider();
+
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
 
-    const {getMockTellerConnectResponse, getMockTellerAccounts} = useMockService();
-
     const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => {
-        if(mocking) return getMockTellerConnectResponse();
+        if (mocking) return mockEnrollmentData;
     });
     const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
     const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
 
-    const { redirect } = useLocalSearchParams();
-    const {getTellerService} = useGlobalContext();
-    const { fetchAccountsByAccessToken } = getTellerService();
+
 
     type ConnectWebViewCallback = {
         data: TellerConnectResponse,
@@ -43,35 +47,45 @@ const ConnectAccount = () => {
 
     useEffect(() => {
         if (enrollmentData) {
+            console.log("enrollment data", enrollmentData);
             //Fetch all accounts associated with the link
             getAccounts();
         }
     }, [enrollmentData])
- 
+
     const getAccounts = async () => {
-        let connectedAccounts;
-        if(mocking){
-            connectedAccounts = getMockTellerAccounts();
-        } else {
-            connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
-        }
+        const connectedAccounts = await fetchAccountsByAccessToken(enrollmentData?.accessToken || '');
         setAccounts(connectedAccounts);
         setLoadingConnectedAccounts(false);
     }
 
-    const selectAccount = (account: TellerAccountResponse) => {
-        const callback = JSON.stringify({
-            enrollment: enrollmentData,
+    const selectAccount = async (account: TellerAccountResponse) => {
+        let enrollment = JSON.parse(JSON.stringify(enrollmentData));
+        enrollment.enrollment = mocking ?
+            {
+                id: account.enrollmentId,
+                institution: {
+                    id: account.institution.id,
+                    name: account.institution.name
+                }
+            }
+            :
+            enrollmentData?.enrollment
+        console.log(enrollment);
+        const accountData = JSON.stringify({
+            enrollment,
             account
         });
+        console.log("selectAccount data: ", accountData);
+        await AsyncStorage.setItem(
+            'pendingAccountInfo', accountData
+        )
         setEnrollmentData(undefined);
         setAccounts([]);
         setLoadingConnectedAccounts(true);
-        router.push({
-            pathname: redirect,
-            params: { callback }
-        })
-    } 
+        setLoading(true);
+        router.replace(redirect as Href)
+    }
 
     const renderTitle = () => {
         if (redirect && redirect === "/setup") {
@@ -79,7 +93,7 @@ const ConnectAccount = () => {
         } else {
             return "Select account to link:"
         }
-    } 
+    }
 
     return (
         <SafeAreaProvider>

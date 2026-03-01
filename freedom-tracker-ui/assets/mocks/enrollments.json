@@ -1,6 +1,6 @@
 {
     "enrollment_data": {
-        "accessToken": "mock_access_token",
+        "accessToken": "mock_access_token_2",
         "user": {
             "id": "mock_user_1"
         },

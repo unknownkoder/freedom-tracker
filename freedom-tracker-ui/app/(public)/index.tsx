@@ -4,216 +4,50 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as schema from '@/db/schema';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGlobalContext } from '@/services/GlobalContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinkAccountButton } from '@/components/LinkAccountButton';
 import { ConnectAccountCallback, TellerAccountResponse, TellerConnectResponse } from '@/types/teller';
 import { SetupScreenGoalCard } from '@/components/Goals/SetupScreenGoalCard';
-
-export type GoalSetup = {
-    name: string,
-    amount: number,
-    type: schema.GoalType,
-    recurring: boolean,
-    occuranceType: schema.OccuranceType,
-    termedEndDate: Date | null
-}
+import { GoalSetup } from '@/types/goals';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SetupSplash = () => {
 
-    const { user, dataStore, updateUserState, getTellerService } = useGlobalContext();
-    const { persistConnection, persistAccount } = getTellerService();
+    const {loading, authState, user, setLoading, getUserService, getGoalService } = useGlobalContext();
+    const { persistNewUser, setUser } = getUserService();
+    const { persistGoals } = getGoalService();
 
-    const [usersName, setUsersName] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(true);
-    const [isSavingChecked, setSavingChecked] = useState<boolean>(false);
-    const [savingsGoal, setSavingsGoal] = useState<GoalSetup>({
-        name: '',
-        amount: 0.0,
-        type: 'SAVINGS' as schema.GoalType,
-        recurring: false,
-        occuranceType: 'WEEKLY',
-        termedEndDate: null,
-    });
-    const [isTrackingChecked, setTrackingChecked] = useState<boolean>(false);
-    const [trackingGoal, setTrackingGoal] = useState<GoalSetup>({
-        name: '',
-        amount: 0.0,
-        type: 'BUDGET' as schema.GoalType,
-        recurring: false,
-        occuranceType: 'WEEKLY',
-        termedEndDate: null
-    })
-    const [isDebtChecked, setDebtChecked] = useState<boolean>(false);
-    const [debtGoal, setDebtGoal] = useState<GoalSetup>({
-        name: '',
-        amount: 0.0,
-        type: 'DEBT' as schema.GoalType,
-        recurring: false,
-        occuranceType: 'WEEKLY',
-        termedEndDate: null
-    })
+    /* Connect account and redirect related logic */
+    const router = useRouter();
 
+    const handleNavigateBackFromConnectAccount = async () => {
+        const pendingAccounts = await AsyncStorage.getItem('pendingAccountInfo');
+        if(pendingAccounts){
+            const {enrollment, account} = JSON.parse(pendingAccounts);
+            setEnrollment(enrollment);
+            setSelectedAccount(account);
+        }
+    }
     const [enrollment, setEnrollment] = useState<TellerConnectResponse | undefined>();
     const [selectedAccount, setSelectedAccount] = useState<TellerAccountResponse | undefined>();
 
-    const router = useRouter();
-    const { callback } = useLocalSearchParams();
-
-    const restorePage = async () => {
-        const savings = AsyncStorage.getItem('setup-savings');
-        const tracking = AsyncStorage.getItem('setup-tracking');
-        const debt = AsyncStorage.getItem('setup-debt');
-
-        const [restoredSavings, restoredTracking, restoredDebt] = await Promise.all(
-            [savings, tracking, debt]
-        );
-
-        setSavingChecked((restoredSavings === 'true') || false);
-        setTrackingChecked((restoredTracking === 'true') || false);
-        setDebtChecked((restoredDebt === 'true') || false);
-        setUsersName(() => user?.nickname || '');
-        setLoading(false);
-    }
-
-    useEffect(() => {
-        restorePage();
-        if (callback) {
-            const callbackData: ConnectAccountCallback = JSON.parse(callback as string);
-            setEnrollment(callbackData.enrollment);
-            setSelectedAccount(callbackData.account);
-        }
-    }, [])
-
-    const toggleSavings = () => {
-        setSavingChecked((saving) => !saving)
-    }
-
-    const toggleTracking = () => {
-        setTrackingChecked((tracking) => !tracking);
-    }
-
-    const toggleDebt = () => {
-        setDebtChecked((debt) => !debt);
-    }
-
-    type PersistGoalType = {
-        name: string,
-        amount: number,
-        startDate: string,
-        endDate: string | null,
-        type: schema.GoalType,
-        recurring: boolean,
-        occuranceType: schema.OccuranceType,
-        userId: number
-    }
-
-    const generateGoals = async (user: schema.User) => {
-        const goals: PersistGoalType[] = [];
-        const mapGoalSetupToPersistGoalType = (goalSetup: GoalSetup, user: schema.User): PersistGoalType => {
-            return {
-                name: goalSetup.name,
-                amount: goalSetup.amount,
-                type: goalSetup.type,
-                startDate: new Date().toISOString().slice(0, 10),
-                endDate: goalSetup.termedEndDate?.toISOString().slice(0, 10) ?? null,
-                recurring: goalSetup.recurring,
-                userId: user.id,
-                occuranceType: goalSetup.occuranceType
-            }
-        }
-        if (isSavingChecked) {
-            goals.push(mapGoalSetupToPersistGoalType(savingsGoal, user));
-        }
-
-        if (isTrackingChecked) {
-            console.log(trackingGoal);
-            goals.push(mapGoalSetupToPersistGoalType(trackingGoal, user));
-        }
-
-        if (isDebtChecked) {
-            goals.push(mapGoalSetupToPersistGoalType(debtGoal, user));
-        }
-
-        const persistedGoals = await dataStore.insert(schema.goals).values([...goals]).returning();
-        return persistedGoals;
-    }
-
-    const handleSubmitUserInformation = async (event: GestureResponderEvent) => {
+    const openConnectAccount = async (event: GestureResponderEvent) => {
         event.stopPropagation();
-        try {
-
-            //Validate the user has filled out their name
-            //Later we would want to ensure the user has linked their primary account
-            if (!usersName) {
-                Alert.alert('Must enter nickname', 'Please enter your nickname to continue', [
-                    { text: 'OK', onPress: () => console.log('OK Pressed') },
-                ]);
-                return;
-            }
-
-            console.log("~~~ Starting Persistence Process ~~~")
-            const newUser = await dataStore.insert(schema.user).values({ nickname: usersName }).returning();
-            const persistedUser = newUser[0];
-
-            const persistedGoals = await generateGoals(persistedUser);
-
-            let persistedConnection;
-            let persistedAccount;
-
-            if (persistedUser && enrollment) {
-                const connectionToPersist = {
-                    id: 0,
-                    accessToken: enrollment.accessToken,
-                    enrollmentId: enrollment.enrollment.id,
-                    tellerUserId: enrollment.user.id,
-                    userId: persistedUser.id
-                }
-                persistedConnection = await persistConnection(connectionToPersist, persistedUser.id);
-            } else {
-                Alert.alert('Must select your primary account', 'Please link your primary account to continue', [
-                    { text: 'OK', onPress: () => { } }
-                ])
-            }
-
-            if (persistedUser && persistedConnection && selectedAccount) {
-                const accountToPersist: schema.Account = {
-                    id: selectedAccount.id,
-                    institution: selectedAccount.institution.name,
-                    lastFour: selectedAccount.last_four,
-                    name: selectedAccount.name,
-                    isPrimary: true,
-                    status: selectedAccount.status.toString(),
-                    subtype: selectedAccount.subtype.toString(),
-                    type: selectedAccount.type.toString(),
-                    currency: selectedAccount.currency,
-                    balance: '0.0',
-                    connectionId: 0
-                }
-                persistedAccount = await persistAccount(accountToPersist, persistedConnection.id)
-            } else {
-                Alert.alert('Must select your primary account', 'Please link your primary account to continue', [
-                    { text: 'OK', onPress: () => { } }
-                ])
-            }
-
-            if (persistedUser && persistedConnection && persistedAccount && persistedGoals) {
-                updateUserState({
-                    ...persistedUser,
-                    goals: persistedGoals,
-                    connections: [persistedConnection],
-                    accounts: [persistedAccount],
-                    transactions: []
-                });
-                await AsyncStorage.multiRemove(['setup-savings', 'setup-debt', 'setup-tracking']);
-                router.replace('/(app)');
-            } else {
-                throw new Error('User setup was not successful');
-            }
-        } catch (e) {
-            console.log(e)
-        }
+        console.log("open connect screen");
+        router.push({
+            pathname: '/connect_account',
+            params: { redirect: '/(public)' }
+        });
     }
 
+    //Check for callback data from connect account
+    useEffect(() => {
+        setLoading(true);
+        handleNavigateBackFromConnectAccount(); 
+        setLoading(false);
+    }, []) 
+
+    /* User related logic */
+    const [usersName, setUsersName] = useState<string>(user?.nickname ?? '');
     const handleUserNameInput = (name: string) => {
         setUsersName(name);
 
@@ -228,28 +62,112 @@ const SetupSplash = () => {
             updatedUser = {
                 id: -1,
                 nickname: name,
-                goals: [],
-                connections: [],
-                accounts: [],
-                transactions: []
+                goals: undefined,
+                connections: undefined,
+                accounts: undefined,
+                transactions: undefined
             }
         }
 
-        updateUserState(updatedUser);
+        setUser(updatedUser);
     }
 
-    const openConnectAccount = async (event: GestureResponderEvent) => {
-        event.stopPropagation();
-        await Promise.all([
-            AsyncStorage.setItem('setup-savings', JSON.stringify(isSavingChecked)),
-            AsyncStorage.setItem('setup-tracking', JSON.stringify(isTrackingChecked)),
-            AsyncStorage.setItem('setup-debt', JSON.stringify(isDebtChecked))
-        ]);
-        router.push({
-            pathname: '/connect_account',
-            params: { redirect: '/setup' }
+    /* Goal Related logic */
+    const [savingsGoal, setSavingsGoal] = useState<GoalSetup>({
+        selected: false,
+        name: '',
+        amount: 0.0,
+        type: 'SAVINGS' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null,
+    });
+    const [trackingGoal, setTrackingGoal] = useState<GoalSetup>({
+        selected: false,
+        name: '',
+        amount: 0.0,
+        type: 'BUDGET' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null
+    })
+    const [debtGoal, setDebtGoal] = useState<GoalSetup>({
+        selected: false,
+        name: '',
+        amount: 0.0,
+        type: 'DEBT' as schema.GoalType,
+        recurring: false,
+        occuranceType: 'WEEKLY',
+        termedEndDate: null
+    })
+
+    const toggleSavings = () => {
+        setSavingsGoal({
+            ...savingsGoal,
+            selected: !savingsGoal.selected
+        })
+    }
+
+    const toggleTracking = () => {
+        setTrackingGoal({
+            ...trackingGoal,
+            selected: !trackingGoal.selected
         });
     }
+
+    const toggleDebt = () => {
+        setDebtGoal({
+            ...debtGoal,
+            selected: !debtGoal.selected
+        });
+    }
+
+    /* User Persistence Process */
+    //Step 1. Persist the user from the database, set the global users id
+    const handleStartUserPersistenceProcess = async (event: GestureResponderEvent) => {
+        event.stopPropagation();
+        try {
+            //Validate the user has filled out their name
+            if (!usersName) {
+                Alert.alert('Must enter nickname', 'Please enter your nickname to continue', [
+                    { text: 'OK', onPress: () => console.log('OK Pressed') },
+                ]);
+                return;
+            }
+
+            //Validate they have selected an account
+            if (!selectedAccount && !enrollment) {
+                Alert.alert('Must select your primary account', 'Please link your primary account to continue', [
+                    { text: 'OK', onPress: () => { } }
+                ])
+            }
+
+            //persistNewUser sets the global users id to > 0 and triggers the goal creation set
+            await persistNewUser(usersName);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    
+    //Step 2. Persist any goals the user filled out
+    useEffect(() => {
+        if (user && user.id > 0) {
+            (async function() {
+                await persistGoals([savingsGoal, trackingGoal, debtGoal]);
+            })()
+        }
+    }, [user?.id])
+
+    //Step 3. User id and goals are persisted, user is authenticated, push user to authenticated experience
+    //pass the authenticated experience the account information to fetch transaction and balance data
+    useEffect(() => {
+        if (authState === 'AUTHENTICATED') {
+            setLoading(true);
+            router.replace({
+                pathname: '/(authenticated)',
+            });
+        }
+    }, [authState])
 
     return (
         <SafeAreaProvider>
@@ -281,7 +199,7 @@ const SetupSplash = () => {
                                         :
                                         <LinkAccountButton onPress={openConnectAccount}>
                                             <Image
-                                                source={require('../assets/images/Plaid-black.png')}
+                                                source={require('../../assets/images/Plaid-black.png')}
                                                 style={styles.connectImage}
                                                 resizeMode="contain"
                                             />
@@ -294,7 +212,7 @@ const SetupSplash = () => {
                                         <Text style={styles.text}>Select your Goals:</Text>
                                         <SetupScreenGoalCard
                                             goalType='SAVING'
-                                            isChecked={isSavingChecked}
+                                            isChecked={savingsGoal.selected || false}
                                             title={"Saving Money"}
                                             subtitle={"Set a savings target, and watch your savings account grow."}
                                             selectGoal={toggleSavings}
@@ -302,7 +220,7 @@ const SetupSplash = () => {
                                         />
                                         <SetupScreenGoalCard
                                             goalType='BUDGET'
-                                            isChecked={isTrackingChecked}
+                                            isChecked={trackingGoal.selected || false}
                                             title={"Tracking Expenses"}
                                             subtitle={"Track the money coming in and out of your account on a daily basis."}
                                             selectGoal={toggleTracking}
@@ -310,7 +228,7 @@ const SetupSplash = () => {
                                         />
                                         <SetupScreenGoalCard
                                             goalType='DEBT'
-                                            isChecked={isDebtChecked}
+                                            isChecked={debtGoal.selected || false}
                                             title={"Reduce Debt"}
                                             subtitle={"Reduce your debt one small chunk at a time until it disapears."}
                                             selectGoal={toggleDebt}
@@ -318,7 +236,11 @@ const SetupSplash = () => {
                                         />
                                     </View>
                                 }
-                                <TouchableOpacity disabled={!selectedAccount} style={[styles.submit, selectedAccount ? styles.submitActive : styles.submitInactive]} onPress={handleSubmitUserInformation}>
+                                <TouchableOpacity
+                                    disabled={!selectedAccount}
+                                    style={[styles.submit, selectedAccount ? styles.submitActive : styles.submitInactive]}
+                                    onPress={handleStartUserPersistenceProcess}
+                                >
                                     <Text style={styles.text}>Submit and Complete Setup</Text>
                                 </TouchableOpacity>
                             </View>

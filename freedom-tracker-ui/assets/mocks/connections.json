@@ -2,22 +2,22 @@
     "connections": [
         {
             "id": 1,
-            "accessToken": "access_token_1",
-            "enrollmentId": "mock_acc_1_enrollment",
+            "accessToken": "mock_access_token_1",
+            "enrollmentId": "mock_enrollment_1",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },
         {
             "id": 2,
-            "accessToken": "access_token_2",
-            "enrollmentId": "mock_acc_2_enrollment",
+            "accessToken": "mock_access_token_2",
+            "enrollmentId": "mock_enrollment_2",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },
         {
             "id": 3,
-            "accessToken": "access_token_2",
-            "enrollmentId": "mock_acc_3_enrollment",
+            "accessToken": "mock_access_token_2",
+            "enrollmentId": "mock_enrollment_3",
             "tellerUserId": "mock_teller_user",
             "userId": 1
         },

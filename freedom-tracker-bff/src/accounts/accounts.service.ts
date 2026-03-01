@@ -56,10 +56,10 @@ export class AccountsService {
         }
     }
 
-    async getAccountTransactions(accountId: string, accessToken:string, transactionId?: string): Promise<TellerTransactionResponse[]>{
+    async getAccountTransactions(accountId: string, accessToken:string, startDate?: string): Promise<TellerTransactionResponse[]>{
         const client = this.getMtlsClient(accessToken);
         try{
-            const res = await client.get(`/${accountId}/transactions${transactionId ? `?from_id=${transactionId}` : ''}`);
+            const res = await client.get(`/${accountId}/transactions${startDate ? `?start_date=${startDate}` : ''}`);
             console.log(res.data);
             return res.data;
         } catch(e){
@@ -68,11 +68,11 @@ export class AccountsService {
         }
     }
 
-    async getAccountDetails(accountId: string, accessToken:string, transactionId?: string): Promise<AccountDetails>{
+    async getAccountDetails(accountId: string, accessToken:string, startDate?: string): Promise<AccountDetails>{
         try{
             const [balance, transactions] = await Promise.all([
                 this.getAccountBalance(accountId, accessToken),
-                this.getAccountTransactions(accountId, accessToken, transactionId)
+                this.getAccountTransactions(accountId, accessToken, startDate)
             ]);
 
             //Get the available balance if not null, otherwise ledger if not null, otherwise 0.00
@@ -112,7 +112,7 @@ export class AccountsService {
                          this.getAccountDetails(
                              accountInfo.accountId,
                              accountInfo.accessToken,
-                             accountInfo.transactionId
+                             accountInfo.startDate
                          )
             );
 

@@ -1,4 +1,5 @@
 import * as schema from "@/db/schema";
+import useGoalTrackingCalculator from "@/hooks/useGoalTrackingCalculator";
 import { GlobalUserTransaction, useGlobalContext } from "@/services/GlobalContext";
 import { generateUTCDateWithOffset, parseDateString } from "@/services/utils";
 import { useEffect, useState } from "react";
@@ -11,86 +12,7 @@ export interface GoalTrackingCardProps {
 
 export const GoalTrackingCard: React.FC<GoalTrackingCardProps> = ({ goal, transactions }) => {
 
-    const [amountTracked, setAmountTracked] = useState<number | undefined>();
-
-    const filterTransactionsForRecurring = (startingDate:Date, endingDate:Date) => {
-        return transactions.filter((t) => {
-            const transactionDate = generateUTCDateWithOffset(t.date);
-            /* Take only the correct date strings to ignore time and them compare */
-            if (transactionDate >= startingDate && transactionDate <= endingDate) {
-                return t;
-            }
-        })
-    }
-
-    const filterWeeklyGoalTransactions = () => {
-        const today = new Date();
-        const todaysDayOfWeek = today.getDay();
-        let startingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`);
-        let endingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`);
-        
-        //If today is sunday, we just need to update the ending date to saturday
-        if (todaysDayOfWeek === 0) {
-            endingDate.setDate(endingDate.getDate() + 6)
-            endingDate = generateUTCDateWithOffset(parseDateString(endingDate));
-        }
-        //If today is not sunday, we need to calculate and set starting and ending date
-        else {
-            let daysToSubtract = todaysDayOfWeek;
-            let daysToAdd = 6 - daysToSubtract;
-            startingDate.setDate(startingDate.getDate() - daysToSubtract)
-            endingDate.setDate(endingDate.getDate() + daysToAdd)
-        }
-
-        return filterTransactionsForRecurring(startingDate, endingDate);
-    }
-
-    const filterMonthlyGoalTransactions = () => {
-        const today = new Date();
-        let startingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth() + 1}-1`);
-        let endingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth() + 2}-0`);
-
-        return filterTransactionsForRecurring(startingDate, endingDate);
-    }
-
-    const filterYearlyGoalTransaction = () => {
-        const today = new Date();
-        let startingDate = generateUTCDateWithOffset(`${today.getFullYear()}-1-1`);
-        let endingDate = generateUTCDateWithOffset(`${today.getFullYear()}-12-31`);
-
-        return filterTransactionsForRecurring(startingDate, endingDate);
-    }
-
-    const calculateGoalTotalAmount = () => {
-        let transactionsToTrack: schema.Transaction[] = [];
-        if (goal.recurring) {
-            switch (goal.occuranceType) {
-                case 'WEEKLY':
-                    transactionsToTrack = filterWeeklyGoalTransactions();
-                    console.log("this weeks: ", transactionsToTrack);
-                    break;
-                case 'MONTHLY':
-                    transactionsToTrack = filterMonthlyGoalTransactions();
-                    break;
-                default:
-                    transactionsToTrack = filterYearlyGoalTransaction();
-            }
-        } else {
-            transactionsToTrack = transactions;
-        }
-
-        let runningTotal = 0;
-        transactionsToTrack.forEach((t) => {
-            const amount = Math.abs(Number(t.amount));
-            runningTotal += amount;
-        })
-
-        setAmountTracked(runningTotal);
-    }
-
-    useEffect(() => {
-        calculateGoalTotalAmount();
-    }, [transactions])
+    const amountTracked = useGoalTrackingCalculator(transactions, goal);
 
     if (amountTracked === undefined) return null;
 

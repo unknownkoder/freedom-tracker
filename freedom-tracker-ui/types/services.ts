@@ -1,9 +1,11 @@
 import * as schema from "@/db/schema";
 import { AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerAccountResponse, TellerConnectResponse } from "./teller";
-import { GlobalUser } from "@/services/GlobalContext";
+import { AuthState, GlobalUser, GlobalUserTransaction } from "@/services/GlobalContext";
+import { GoalSetup } from "./goals";
 
 export interface GlobalContextReducers {
     updateUserState: (user: GlobalUser | undefined) => void;
+    updateAuthState: (state: AuthState) => void;
     updateLoadingState: (loading: boolean) => void;
     updateLoadUserError: (error: boolean) => void;
 }
@@ -22,12 +24,22 @@ export interface IMockDataProvider {
 
 export interface IUserService {
     loadUser: () => Promise<void>;
-    setUser: (user?:GlobalUser) => void;
+    persistNewUser: (nickname: string) => Promise<void>;
+    setUser: (user?: GlobalUser) => void;
 }
 
 export interface ITellerService {
     fetchAccountsByAccessToken: (accessToken: string) => Promise<TellerAccountResponse[]>;
     persistConnection: (connection: schema.Connection, userId: number) => Promise<schema.Connection>;
-    persistAccount: (account: schema.Account, connectionId: number) => Promise<schema.Account>;
-    fetchAndPersistAccountDetails: (accounts: AccountDetailsRequest[]) => Promise<FetchAndPersistAccountInfoResponse>;
+    persistAccount: (account: schema.Account, connectionId: number) => Promise<schema.Account>; 
+    fetchAndPersistAccountDetails: (startDate?: string) => Promise<void>;
+}
+
+export interface IGoalService {
+    persistGoals: (goalsToPersist: GoalSetup[]) => Promise<void>;
+}
+
+export interface ITransactionService { 
+    updateTransactionTracking: (transaction: GlobalUserTransaction) => Promise<void>;
+    trackTransactionTowardsGoal: (transaction: GlobalUserTransaction, goalId:number) => Promise<void>;
 }

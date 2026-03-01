@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import Constants from "expo-constants";
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native"
+import * as schema from '@/db/schema';
+import { getAccountObjectForTransaction } from "@/services/transaction/sharedTransactionUtils";
 
 interface TransactionCardProps {
     transaction: GlobalUserTransaction;
@@ -16,18 +18,14 @@ interface TransactionCardProps {
 
 export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, user }) => {
 
-    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
-    const { dataStore, updateUserState } = useGlobalContext();
+    const { getTransactionService } = useGlobalContext();
 
-    const account = user.accounts.filter(account => account.id === transaction.accountId)[0];
-    let date;
-    if (transaction.date) {
-        date = new Date(transaction.date);
-    }
+    const {updateTransactionTracking, trackTransactionTowardsGoal} = getTransactionService(); 
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [trackTowardsSpending, setTrackTowardsSpending] = useState<boolean>(() => transaction.tracked ?? false);
+    const [account, setAccount] = useState<schema.Account>(() => getAccountObjectForTransaction(transaction, user));
 
     const toggleTransactionSettings = () => {
         setIsOpen(open => !open);
@@ -36,84 +34,11 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
     const toggleTrackTowardsSpending = async () => {
         /* Flip the UI switch state */
         setTrackTowardsSpending(tracked => !tracked);
-        let updatedTransaction;
-
-        /* If mocking avoid accessing the database */
-        if (mocking) {
-            updatedTransaction = {
-                ...transaction,
-                tracked: !trackTowardsSpending
-            }
-        } else {
-            /* Update the record in the database */
-            const persistTransaction = await dataStore.update(transactions)
-                .set({ tracked: !trackTowardsSpending })
-                .where(eq(transactions.id, transaction.id))
-                .returning();
-            if (persistTransaction.length !== 1) {
-                console.log("Something went wrong updating the transaction");
-                throw new Error("Update transaction error");
-            }
-            updatedTransaction = persistTransaction[0];
-        }
-
-        console.log("Updated transaction: ", updatedTransaction);
-        /* Update the global context record */
-        let updatedUsersTransactions: GlobalUserTransaction[] = user.transactions.map((t) => {
-            if (t.id === updatedTransaction.id) {
-                return {
-                    ...updatedTransaction,
-                    trackedGoals: transaction.trackedGoals
-                }
-            }
-
-            return t;
-        })
-        updateUserState({
-            ...user,
-            transactions: updatedUsersTransactions
-        })
+        await updateTransactionTracking(transaction); 
     }
 
     const trackGoal = async (goalId: number) => {
-        let goalList: number[] = JSON.parse(JSON.stringify(transaction.trackedGoals));
-        /* Check if the goal already exists in the tracked goals
-           If it does we remove, otherwise we add it
-        */
-        if (transaction.trackedGoals.some(goal => goal === goalId)) {
-            console.log("remove the goal");
-            if (!mocking) {
-                await dataStore.delete(transactionGoalJunction)
-                    .where(eq(transactionGoalJunction.goalId, goalId));
-            }
-            goalList = goalList.filter(g => g !== goalId);
-        } else {
-            /* Persist the goal transaction junction entry */
-            if (!mocking) {
-                await dataStore.insert(transactionGoalJunction).values({
-                    transactionId: transaction.id,
-                    goalId: goalId
-                });
-            }
-            goalList.push(goalId);
-        }
-
-        /* Update the GlobalUserTransaction object in global context */
-        const updatedUserTransactions = user.transactions.map((t) => {
-            if (t.id === transaction.id) {
-                return {
-                    ...t,
-                    trackedGoals: goalList
-                }
-            }
-
-            return t;
-        })
-        console.log(updatedUserTransactions[0]);
-        updateUserState({
-            ...user,
-            transactions: updatedUserTransactions
-        })
+        await trackTransactionTowardsGoal(transaction, goalId);
     }
 
     return (
@@ -124,7 +49,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                 <View style={styles.transactionCardContentContainer}>
                     <Text>${transaction.amount}</Text>
                     <Text>{account.name} {account.lastFour}</Text>
-                    <Text>{transaction.counterPartyName} {date ? parseDateString(date) : ''}</Text>
+                    <Text>{transaction.counterPartyName} {transaction.date ? parseDateString(transaction.date) : ''}</Text>
                 </View>
                 {/* Card Right content */}
                 <View style={styles.transactionCardContentIconContainer}>
@@ -146,7 +71,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
                     </View>
                     <View style={styles.transactionCardTrackTowardsGoals}>
                         <Text>Track towards goals:</Text>
-                        {user.goals.map((goal) => {
+                        {(user?.goals || []).map((goal) => {
                             return (
                                 <TouchableOpacity key={goal.id} onPress={(e) => {
                                     e.stopPropagation();

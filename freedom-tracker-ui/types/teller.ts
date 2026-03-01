@@ -61,7 +61,7 @@ export type ConnectAccountCallback = {
 export type AccountDetailsRequest = {
     accountId: string;
     accessToken: string;
-    transactionId?: string;
+    startDate?: string;
 }
 
 export type TransactionCounterParty = {

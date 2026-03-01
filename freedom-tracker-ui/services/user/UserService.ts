@@ -8,13 +8,13 @@ export default function UserService(
     globalReducers: GlobalContextReducers
 ): IUserService {
 
-    const { updateLoadingState, updateLoadUserError, updateUserState } = globalReducers; 
+    const { updateLoadingState, updateLoadUserError, updateUserState } = globalReducers;
 
     const loadUser = async (): Promise<void> => {
         try {
             updateLoadUserError(false);
             updateLoadingState(true);
- 
+
             const appUser = dataStore.query.user.findFirst();
             const connections = dataStore.query.connections.findMany();
             const accounts = dataStore.query.accounts.findMany();
@@ -33,29 +33,30 @@ export default function UserService(
                 persistedTransactions,
                 persistedTransactionsGoalsJunction
             ]
-            = await Promise.all([
-                appUser,
-                connections,
-                accounts,
-                goals,
-                transactions,
-                transactionsGoalsJunction
-            ]);
+                = await Promise.all([
+                    appUser,
+                    connections,
+                    accounts,
+                    goals,
+                    transactions,
+                    transactionsGoalsJunction
+                ]);
 
-            const globalUserTransactions:GlobalUserTransaction[] = persistedTransactions
-                .map((t:schema.Transaction) => {
+            const globalUserTransactions: GlobalUserTransaction[] = persistedTransactions
+                .map((t: schema.Transaction) => {
                     let goals: number[] = [];
-                    persistedTransactionsGoalsJunction.forEach((tg:schema.TransactionToGoals) => {
-                        if(tg.transactionId === t.id) goals.push(tg.goalId);
+                    persistedTransactionsGoalsJunction.forEach((tg: schema.TransactionToGoals) => {
+                        if (tg.transactionId === t.id) goals.push(tg.goalId);
                     })
-                    
+
                     return {
                         ...t,
                         trackedGoals: goals
                     }
-                }) 
+                })
 
             if (persistedUser) {
+                globalReducers.updateAuthState('AUTHENTICATED');
                 updateUserState({
                     id: persistedUser.id,
                     nickname: persistedUser.nickname,
@@ -65,13 +66,32 @@ export default function UserService(
                     transactions: globalUserTransactions ?? []
                 });
             } else {
-                throw new Error("Unable to load user from database");
+                globalReducers.updateAuthState('UNAUTHENTICATED');
             }
         } catch (e) {
             updateLoadUserError(true);
         } finally {
             updateLoadingState(false);
-        } 
+        }
+    }
+
+    const persistNewUser = async (nickname: string): Promise<void> => {
+        try {
+            const newUser = await dataStore.insert(schema.user).values({ nickname }).returning();
+            const persistedUser: schema.User = newUser[0];
+            console.log(persistedUser);
+            globalReducers.updateUserState({
+                id: persistedUser.id,
+                nickname: persistedUser.nickname,
+                goals: undefined,
+                connections: undefined,
+                accounts: undefined,
+                transactions: undefined
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Unable to persist user");
+        }
     }
 
     const setUser = (user?: GlobalUser) => {
@@ -80,6 +100,7 @@ export default function UserService(
 
     return {
         loadUser,
+        persistNewUser,
         setUser
     }
 

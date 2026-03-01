@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `transactions_teller_transactions_id_unique` ON `transactions` (`teller_transactions_id`);

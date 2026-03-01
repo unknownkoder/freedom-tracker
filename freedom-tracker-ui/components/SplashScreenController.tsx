@@ -2,28 +2,25 @@ import { SplashScreen } from "expo-router";
 import { useGlobalContext } from "@/services/GlobalContext";
 import { useEffect } from "react";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 SplashScreen.preventAutoHideAsync();
 
-export function SplashScreenController(){
-    const {loading, user, getUserService} = useGlobalContext();
-    const {loadUser} = getUserService();
+export function SplashScreenController() {
+  const { authState, user, getUserService } = useGlobalContext();
+  const { loadUser } = getUserService();
 
-    const initApplication = async () => {
-        await AsyncStorage.setItem('initial-boot', 'true');
-        loadUser(); 
+  // Load user on mount
+  useEffect(() => {
+    if (authState === "LOADING" && !user) {
+      loadUser();
     }
-  
-    useEffect(() => {
-        if(loading && !user){
-            initApplication();
-        } 
-    }, []);
+  }, []);
 
-    if(!loading){
-        SplashScreen.hide();
+  // Hide splash when auth resolves
+  useEffect(() => {
+    if (authState !== "LOADING") {
+      SplashScreen.hideAsync();
     }
+  }, [authState]);
 
-    return null;
+  return null;
 }
