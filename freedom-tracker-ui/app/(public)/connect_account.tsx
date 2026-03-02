@@ -1,5 +1,4 @@
 import { useGlobalContext } from "@/services/GlobalContext";
-import useTellerService from "@/services/teller/TellerService";
 import { useEffect, useRef, useState } from "react";
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -7,28 +6,21 @@ import { WebView, WebViewMessageEvent } from "react-native-webview";
 
 import { useLocalSearchParams, useRouter, Href } from "expo-router";
 import { TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
-import Constants from "expo-constants";
-import useMockService from "@/services/MockService";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MockDataProvider from "@/services/MockDataProvider";
 
 const ConnectAccount = () => {
     const server = process.env.EXPO_PUBLIC_SERVER_URI || '';
-    const mocking = Constants?.expoConfig?.extra?.ENABLE_MOCKS || false;
 
     const { redirect } = useLocalSearchParams<{ redirect: string }>();
     const { setLoading, getTellerService } = useGlobalContext();
-    const { fetchAccountsByAccessToken } = getTellerService();
-    const { enrollmentData: mockEnrollmentData } = MockDataProvider();
+    const { fetchAccountsByAccessToken, getDefaultEnrollmentData, mapEnrollmentDataForCallback } = getTellerService();
 
     const webViewRef = useRef<WebView>(null);
 
     const router = useRouter();
 
-    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => {
-        if (mocking) return mockEnrollmentData;
-    });
+    const [enrollmentData, setEnrollmentData] = useState<TellerConnectResponse | undefined>(() => getDefaultEnrollmentData());
     const [loadingConnectedAccounts, setLoadingConnectedAccounts] = useState<boolean>(true);
     const [accounts, setAccounts] = useState<TellerAccountResponse[]>([]);
 
@@ -60,18 +52,11 @@ const ConnectAccount = () => {
     }
 
     const selectAccount = async (account: TellerAccountResponse) => {
-        let enrollment = JSON.parse(JSON.stringify(enrollmentData));
-        enrollment.enrollment = mocking ?
-            {
-                id: account.enrollmentId,
-                institution: {
-                    id: account.institution.id,
-                    name: account.institution.name
-                }
-            }
-            :
-            enrollmentData?.enrollment
-        console.log(enrollment);
+        let enrollment;
+        if(enrollmentData){
+            enrollment = mapEnrollmentDataForCallback(enrollmentData, account);
+        }
+
         const accountData = JSON.stringify({
             enrollment,
             account

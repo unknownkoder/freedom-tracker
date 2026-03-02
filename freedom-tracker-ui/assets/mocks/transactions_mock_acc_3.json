@@ -10,7 +10,7 @@
             "counterPartyName": "Target",
             "counterPartyType": "organization",
             "type": "refund",
-            "tracked": true,
+            "tracked": false,
             "accountId": "mock_acc_3"
         },
         {
@@ -22,7 +22,7 @@
             "counterPartyName": "Walmart",
             "counterPartyType": "organization",
             "type": "refund",
-            "tracked": true,
+            "tracked": false,
             "accountId": "mock_acc_3"
         },
         {

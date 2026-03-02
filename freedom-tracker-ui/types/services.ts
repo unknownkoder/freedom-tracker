@@ -33,6 +33,8 @@ export interface ITellerService {
     persistConnection: (connection: schema.Connection, userId: number) => Promise<schema.Connection>;
     persistAccount: (account: schema.Account, connectionId: number) => Promise<schema.Account>; 
     fetchAndPersistAccountDetails: (startDate?: string) => Promise<void>;
+    getDefaultEnrollmentData: () => TellerConnectResponse | undefined;
+    mapEnrollmentDataForCallback: (enrollment:TellerConnectResponse, account: TellerAccountResponse) => TellerConnectResponse;
 }
 
 export interface IGoalService {

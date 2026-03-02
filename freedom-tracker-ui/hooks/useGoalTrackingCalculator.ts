@@ -6,6 +6,7 @@ import { useMemo } from "react";
 export default function useGoalTrackingCalculator(transactions:GlobalUserTransaction[], goal:Goal):number | undefined{
 
     const filterTransactionsForRecurring = (startingDate:Date, endingDate:Date) => {
+        console.log("transactions to filter: ", transactions.length);
         return transactions.filter((t) => {
             const transactionDate = generateUTCDateWithOffset(t.date);
             /* Take only the correct date strings to ignore time and them compare */
@@ -42,6 +43,7 @@ export default function useGoalTrackingCalculator(transactions:GlobalUserTransac
         let startingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth() + 1}-1`);
         let endingDate = generateUTCDateWithOffset(`${today.getFullYear()}-${today.getMonth() + 2}-0`);
 
+        console.log("filter monthly goal transactions", startingDate, endingDate);
         return filterTransactionsForRecurring(startingDate, endingDate);
     }
 
@@ -54,6 +56,7 @@ export default function useGoalTrackingCalculator(transactions:GlobalUserTransac
     }
 
     const calculateGoalTotalAmount = () => {
+        console.log("calculate goal total amount");
         let transactionsToTrack: Transaction[] = [];
         if (goal.recurring) {
             switch (goal.occuranceType) {

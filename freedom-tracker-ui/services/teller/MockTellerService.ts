@@ -6,7 +6,13 @@ import { GlobalUser, GlobalUserTransaction } from "../GlobalContext";
 import { mapAccountDetailsRequestBody } from "../utils";
 
 export default function MockTellerService(globalReducers: GlobalContextReducers, user?: GlobalUser): ITellerService {
-    const { accounts: mockAccounts, transactions: mockTransactions, tellerAccounts: mockTellerAccounts, connections: mockConnections }: IMockDataProvider = MockDataProvider();
+    const {
+        accounts: mockAccounts,
+        transactions: mockTransactions,
+        tellerAccounts: mockTellerAccounts,
+        connections: mockConnections,
+        enrollmentData: mockEnrollmentData
+    }: IMockDataProvider = MockDataProvider();
 
     const fetchAccountsByAccessToken = async (accessToken: string): Promise<TellerAccountResponse[]> => {
         //Get the connection via the accessToken
@@ -40,13 +46,13 @@ export default function MockTellerService(globalReducers: GlobalContextReducers,
         }
 
         console.log(persistedConnection);
-        
+
         const ret = await Promise.resolve(persistedConnection).then(data => data);
 
         return ret;
     }
     const persistAccount = async (account: schema.Account, connectionId: number): Promise<schema.Account> => {
-        console.log("mock persist account:" , account);
+        console.log("mock persist account:", account);
 
         const ret = await Promise.resolve({
             ...account,
@@ -54,7 +60,7 @@ export default function MockTellerService(globalReducers: GlobalContextReducers,
         }).then(data => data);
 
         return ret;
-    } 
+    }
 
     const fetchAndPersistAccountDetails = async (startDate?: string): Promise<void> => {
         if (user) {
@@ -96,10 +102,28 @@ export default function MockTellerService(globalReducers: GlobalContextReducers,
         }
     }
 
+    const getDefaultEnrollmentData = (): TellerConnectResponse | undefined => {
+        return mockEnrollmentData;
+    }
+
+    const mapEnrollmentDataForCallback = (enrollment: TellerConnectResponse, account: TellerAccountResponse): TellerConnectResponse => {
+        let mockedEnrollment = JSON.parse(JSON.stringify(enrollment));
+        mockedEnrollment.enrollment = {
+                id: account.enrollmentId,
+                institution: {
+                    id: account.institution.id,
+                    name: account.institution.name
+                }
+            }
+        return mockedEnrollment;
+    }
+
     return {
         fetchAccountsByAccessToken,
         persistConnection,
         persistAccount,
-        fetchAndPersistAccountDetails
+        fetchAndPersistAccountDetails,
+        getDefaultEnrollmentData,
+        mapEnrollmentDataForCallback
     }
 }

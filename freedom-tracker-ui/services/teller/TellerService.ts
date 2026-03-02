@@ -123,10 +123,20 @@ export default function TellerService(dataStore: any, globalReducers: GlobalCont
         }
     }
 
+    const getDefaultEnrollmentData = ():TellerConnectResponse | undefined => {
+        return undefined;
+    }
+
+    const mapEnrollmentDataForCallback = (enrollment:TellerConnectResponse, account:TellerAccountResponse): TellerConnectResponse => {
+        return enrollment;
+    }
+
     return {
         fetchAccountsByAccessToken,
         persistConnection,
         persistAccount,
-        fetchAndPersistAccountDetails
+        fetchAndPersistAccountDetails,
+        getDefaultEnrollmentData,
+        mapEnrollmentDataForCallback
     }
 }
