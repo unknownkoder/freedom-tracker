@@ -39,7 +39,6 @@ const ConnectAccount = () => {
 
     useEffect(() => {
         if (enrollmentData) {
-            console.log("enrollment data", enrollmentData);
             //Fetch all accounts associated with the link
             getAccounts();
         }
@@ -61,7 +60,6 @@ const ConnectAccount = () => {
             enrollment,
             account
         });
-        console.log("selectAccount data: ", accountData);
         await AsyncStorage.setItem(
             'pendingAccountInfo', accountData
         )

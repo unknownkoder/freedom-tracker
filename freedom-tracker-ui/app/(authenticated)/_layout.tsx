@@ -20,7 +20,6 @@ export default function AuthenticatedRootLayout() {
                 const pending = await AsyncStorage.getItem('pendingAccountInfo');
                 await AsyncStorage.removeItem('pendingAccountInfo');
                 if (pending) {
-                    console.log("Persist pending account");
                     const { enrollment, account } = JSON.parse(pending);
 
                     await updateGlobalUserWithNewConnectionAndAccount(

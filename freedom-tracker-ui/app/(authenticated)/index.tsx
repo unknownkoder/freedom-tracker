@@ -67,7 +67,6 @@ export default function Index() {
                                                         if (endDate && today > new Date(endDate)) {
                                                             return null;
                                                         }
-                                                        console.log("goalTransactions: ", item.item.id);
                                                         const goalTransactions = getTransactionsForGoals(item.item.id, user);
                                                         return (
                                                             <GoalTrackingCard

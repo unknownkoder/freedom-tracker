@@ -17,6 +17,7 @@ import MockUserService from './user/MockUserService';
 import GoalService from './goal/GoalService';
 import MockGoalService from './goal/MockGoalService';
 import TransactionService from './transaction/TransactionService';
+import MockTransactionService from './transaction/MockTransactionService';
 
 export type GlobalContextType = {
     dataStore: any;
@@ -77,16 +78,7 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
     const [user, setUser] = useState<GlobalUser>();
     const updateUserState = (updatedUser: GlobalUser | undefined) => {
         setUser(updatedUser);
-    }
-
-    console.log({
-        id: user?.id,
-        nickname: user?.nickname,
-        accounts: user?.accounts?.length,
-        transactions: user?.transactions?.length,
-        goals: user?.goals?.length,
-        connections: user?.connections?.length
-    });
+    } 
 
     const [authState, setAuthState] = useState<AuthState>('LOADING');
     const updateAuthState = (state:AuthState) => {
@@ -141,8 +133,11 @@ export function GlobalContextProvider({ children }: PropsWithChildren) {
     let transactionService: ITransactionService | undefined;
     const getTransactionService = ():ITransactionService => {
         if(transactionService === undefined){
-            //No need to mock this at this moment
-            transactionService = TransactionService(dataStore, reducers, user);
+            if(mocking){
+                transactionService = MockTransactionService(reducers, user);
+            } else {
+                transactionService = TransactionService(dataStore, reducers, user);
+            }
         }
 
         return transactionService;

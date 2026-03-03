@@ -30,14 +30,11 @@ export default function MockTellerService(globalReducers: GlobalContextReducers,
         return ret;
     }
     const persistConnection = async (connection: schema.Connection, userId: number): Promise<schema.Connection> => {
-        console.log("mock persist Connection:", connection);
-        console.log("mock persistConnection mockConnections:", mockConnections);
         const connections = mockConnections.get(connection.accessToken as string);
         if (!connections) {
             const ret = await Promise.reject(new Error("Connections with accessToken do not exist"));
             return ret;
         }
-        console.log("mock persistConnection connections: ", connections);
 
         const persistedConnection = connections.filter(c => c.enrollmentId === connection.enrollmentId)[0];
         if (!persistConnection) {
@@ -45,14 +42,11 @@ export default function MockTellerService(globalReducers: GlobalContextReducers,
             return ret;
         }
 
-        console.log(persistedConnection);
-
         const ret = await Promise.resolve(persistedConnection).then(data => data);
 
         return ret;
     }
     const persistAccount = async (account: schema.Account, connectionId: number): Promise<schema.Account> => {
-        console.log("mock persist account:", account);
 
         const ret = await Promise.resolve({
             ...account,

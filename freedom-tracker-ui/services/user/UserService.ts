@@ -79,7 +79,6 @@ export default function UserService(
         try {
             const newUser = await dataStore.insert(schema.user).values({ nickname }).returning();
             const persistedUser: schema.User = newUser[0];
-            console.log(persistedUser);
             globalReducers.updateUserState({
                 id: persistedUser.id,
                 nickname: persistedUser.nickname,

@@ -32,6 +32,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, u
     }
 
     const toggleTrackTowardsSpending = async () => {
+        console.log("~~ Start tracing for toggleTrackTowardsSpending ~~")
         /* Flip the UI switch state */
         setTrackTowardsSpending(tracked => !tracked);
         await updateTransactionTracking(transaction); 

@@ -32,7 +32,6 @@ export default function GoalService(dataStore: any, globalReducers: GlobalContex
                     .values([...persistGoals])
                     .onConflictDoNothing({ target: schema.goals.id })
                     .returning();
-                console.log(persistedGoals);
                 const currentGoals = user?.goals ?? [];
                 globalReducers.updateUserState({
                     ...user,
@@ -40,7 +39,6 @@ export default function GoalService(dataStore: any, globalReducers: GlobalContex
                 })
             }
             
-            console.log("set the auth state to authenticated");
             globalReducers.updateAuthState('AUTHENTICATED');
         }
     }

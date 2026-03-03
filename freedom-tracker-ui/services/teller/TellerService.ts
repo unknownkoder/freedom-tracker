@@ -101,8 +101,6 @@ export default function TellerService(dataStore: any, globalReducers: GlobalCont
 
                 allTransactions.sort((a, b) => b.date.localeCompare(a.date));
 
-                console.log("allTransactions: ", allTransactions.length);
-
                 const globalUserTransactions: GlobalUserTransaction[] = allTransactions.map((t) => {
                     return {
                         ...t,

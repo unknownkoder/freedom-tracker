@@ -32,7 +32,6 @@ const SetupSplash = () => {
 
     const openConnectAccount = async (event: GestureResponderEvent) => {
         event.stopPropagation();
-        console.log("open connect screen");
         router.push({
             pathname: '/connect_account',
             params: { redirect: '/(public)' }

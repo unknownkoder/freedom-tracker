@@ -10,7 +10,6 @@ export const isTransactionThisMonth = (transaction: Transaction): boolean => {
 }
 
 export const getTransactionsForGoals = (goalId: number, user?: GlobalUser): GlobalUserTransaction[] => {
-    console.log("users transactions in getTransactionsForGoals: ", user?.transactions?.length);
     if (user && user.transactions) {
         return user?.transactions.filter((t) => {
             return t.trackedGoals.some((goal) => goal === goalId);
@@ -72,7 +71,6 @@ export const updateGlobalUsersTransactionGoalList = (
         return t;
     })
 
-    console.log(goalList);
     globalReducers.updateUserState({
         ...user,
         transactions: updatedUserTransactions
