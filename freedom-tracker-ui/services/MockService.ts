@@ -7,7 +7,7 @@ import mockTellerAccounts from "../assets/mocks/teller_accounts.json";
 import mockAccount2Transactions from "../assets/mocks/transactions_mock_acc_2.json";
 import mockAccount3Transactions from "../assets/mocks/transactions_mock_acc_3.json";
 import mockGoals from "../assets/mocks/goals.json";
-import { GlobalUser } from "./GlobalContext";
+import { GlobalUser, GlobalUserTransaction } from "./GlobalContext";
 import * as schema from '../db/schema';
 import { AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerAccountResponse, TellerConnectResponse } from "@/types/teller";
 
@@ -64,14 +64,21 @@ export default function useMockService() {
     const fetchMockUser = (): GlobalUser => {
         const transactions = mock_acc_1_transactions;
         transactions.sort((a, b) => b.date.localeCompare(a.date));
-        
+       
+        const globalUserTransactions:GlobalUserTransaction[] = transactions.map((t) => {
+            return {
+                ...t,
+                trackedGoals: []
+            }
+        })
+
         return {
             id: user.id,
             nickname: user.nickname,
             goals: [...dateMappedGoals],
             connections: [connections.mock_acc_1],
             accounts: [accounts.mock_acc_1],
-            transactions: [...transactions]
+            transactions: [...globalUserTransactions]
         }
     }
 
@@ -92,9 +99,16 @@ export default function useMockService() {
 
         mockedTransactions.sort((a, b) => b.date.localeCompare(a.date));
 
+        const globalUserTransactions:GlobalUserTransaction[] = mockedTransactions.map((t) => {
+            return {
+                ...t,
+                trackedGoals: []
+            }
+        })
+
         return {
             accounts: mockedAccounts,
-            transactions: mockedTransactions
+            transactions: globalUserTransactions
         };
     }
 

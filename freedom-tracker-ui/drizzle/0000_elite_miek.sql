@@ -26,12 +26,21 @@ CREATE TABLE `goals` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text,
 	`amount` numeric DEFAULT '0.0',
-	`duration` integer DEFAULT 30,
+	`startDate` text NOT NULL,
+	`endDate` text,
 	`type` text NOT NULL,
 	`recurring` integer DEFAULT false,
 	`occurance_type` text DEFAULT 'null',
 	`user_id` integer,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `transaction_goal_junction` (
+	`transaction_id` integer NOT NULL,
+	`goal_id` integer NOT NULL,
+	PRIMARY KEY(`transaction_id`, `goal_id`),
+	FOREIGN KEY (`transaction_id`) REFERENCES `transactions`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`goal_id`) REFERENCES `goals`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `transactions` (

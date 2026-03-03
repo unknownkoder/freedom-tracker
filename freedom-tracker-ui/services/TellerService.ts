@@ -1,5 +1,5 @@
 import { AccountDetails, AccountDetailsRequest, FetchAndPersistAccountInfoResponse, TellerTransaction } from "@/types/teller";
-import { useGlobalContext } from "./GlobalContext";
+import { GlobalUserTransaction, useGlobalContext } from "./GlobalContext";
 import * as schema from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -99,10 +99,21 @@ export default function useTeller() {
                 }
             }
 
+            const trackedGoals = await dataStore.select().from(schema.transactionGoalJunction);
+            console.log(trackedGoals);
+
             allTransactions.sort((a, b) => b.date.localeCompare(a.date));
+
+            const globalUserTransactions: GlobalUserTransaction[] = allTransactions.map((t) => {
+                return {
+                    ...t,
+                    trackedGoals: []
+                }
+            })
+
             return {
                 accounts: updatedAccounts,
-                transactions: allTransactions
+                transactions: globalUserTransactions
             }
         } catch (e) {
             console.log(e);

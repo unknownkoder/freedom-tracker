@@ -1,7 +1,7 @@
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import * as schema from '@/db/schema';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useGlobalContext } from "@/services/GlobalContext";
+import { GlobalUserTransaction, useGlobalContext } from "@/services/GlobalContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinkAccountButton } from "@/components/LinkAccountButton";
 import { useEffect } from "react";
@@ -11,6 +11,7 @@ import { SpendingOverview } from "@/components/SpendingOverview";
 import Constants from "expo-constants";
 import useMockService from "@/services/MockService";
 import { GoalTrackingCard } from "@/components/Goals/GoalTrackingCard";
+import { TransactionCard } from "@/components/Transactions/TransactionCard";
 
 export default function Index() {
 
@@ -127,6 +128,12 @@ export default function Index() {
         return today.getMonth() === +transaction.date.split('-')[1] - 1;
     }
 
+    const getTransactionsForGoals = (goalId: number) => {
+        return user?.transactions.filter((t) => {
+            return t.trackedGoals.some((goal) => goal === goalId);
+        }) ?? [];
+    }
+
     return (
         <SafeAreaProvider>
             <SafeAreaView>
@@ -176,9 +183,12 @@ export default function Index() {
                                                         if(endDate && today > new Date(endDate)){
                                                             return null;
                                                         }
-                                                        
+                                                        const goalTransactions = getTransactionsForGoals(item.item.id);
                                                         return (
-                                                            <GoalTrackingCard goal={item.item} />
+                                                            <GoalTrackingCard
+                                                                goal={item.item}
+                                                                transactions={goalTransactions}
+                                                            />
                                                         )
                                                     }}
                                                     keyExtractor={(item, index) => String(index)}
@@ -186,22 +196,10 @@ export default function Index() {
                                             }
                                         </View>
                                         <Text>Transactions</Text>
-                                        {user?.transactions?.length > 0 && <FlatList<schema.Transaction>
+                                        {user?.transactions?.length > 0 && <FlatList<GlobalUserTransaction>
                                             data={user.transactions}
                                             renderItem={({ item }) => {
-                                                const account = user.accounts.filter(account => account.id === item.accountId)[0];
-                                                let date;
-                                                if (item.date) {
-                                                    date = new Date(item.date);
-                                                }
-                                                return (
-                                                    <View>
-                                                        <Text>Transaction</Text>
-                                                        <Text>Account: {account.name} ... {account.lastFour}</Text>
-                                                        <Text>$ {item.amount}</Text>
-                                                        {date && <Text>On: {date.toDateString()}</Text>}
-                                                    </View>
-                                                )
+                                                return <TransactionCard transaction={item} user={user}/>
                                             }}
                                             keyExtractor={(item, index) => String(index)}
                                         />}
